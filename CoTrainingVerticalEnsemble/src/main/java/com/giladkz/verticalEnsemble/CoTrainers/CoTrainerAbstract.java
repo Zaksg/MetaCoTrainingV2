@@ -395,7 +395,8 @@ public abstract class CoTrainerAbstract {
                         int counter = 0;
                         for (int item : rankedItemsPerClass.get(confidenceScore)) {
                             //Weka returns indices of [0-n], we need to translate it to the indices in the inlabaled training set
-                            int actualIndexInUnlabaledSet = unlabeledTrainingSetIndices.get(item);
+                            //int actualIndexInUnlabaledSet = unlabeledTrainingSetIndices.get(item);
+                            int actualIndexInUnlabaledSet = item;
                             if (!indicesOfAddedInstances.contains(actualIndexInUnlabaledSet)) {
                                 instancesToAddPerClass.get(classIndex).put(actualIndexInUnlabaledSet, confidenceScore);
                                 //add the instance index to the object denoting by which classifier the decision was made
@@ -415,7 +416,8 @@ public abstract class CoTrainerAbstract {
                             int pos = rnd.nextInt(rankedItemsPerClass.get(confidenceScore).size());
                             //Weka returns indices of [0-n], we need to translate it to the indices in the inlabaled training set
                             int indexToTest = rankedItemsPerClass.get(confidenceScore).get(pos);
-                            int actualIndexInUnlabaledSet = unlabeledTrainingSetIndices.get(indexToTest);
+                            //int actualIndexInUnlabaledSet = unlabeledTrainingSetIndices.get(indexToTest);
+                            int actualIndexInUnlabaledSet = indexToTest;
 
                             if (!testedActualIndices.contains(actualIndexInUnlabaledSet)) {
                                 testedActualIndices.add(actualIndexInUnlabaledSet);

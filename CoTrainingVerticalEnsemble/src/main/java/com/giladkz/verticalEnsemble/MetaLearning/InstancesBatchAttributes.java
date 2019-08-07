@@ -206,7 +206,8 @@ public class InstancesBatchAttributes {
             if (!randomSampleScores.containsKey(rndInstancePosition)) {
                 HashMap<Integer, double[]> instancePartitionscoreTemp = new HashMap<>();
                 for (Integer partitionIndex : evaluationResultsPerSetAndInteration.keySet()) {
-                    double[] instanceScoreDistRnd = evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex).getScoreDistributions().get(rndInstancePosition);
+                    Integer keyByPosition = (Integer) evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex).getScoreDistributions().keySet().toArray()[rndInstancePosition];
+                    double[] instanceScoreDistRnd = evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex).getScoreDistributions().get(keyByPosition);
                     instancePartitionscoreTemp.put(partitionIndex,instanceScoreDistRnd);
 
                     //add classes to statistics calcs
@@ -291,15 +292,22 @@ public class InstancesBatchAttributes {
         for (Integer partitionIndex : evaluationResultsPerSetAndInteration.keySet()){
             TreeMap<Integer,double[]> currentIterScoreDist = evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex).getScoreDistributions();
             double[] currentIterationTargetClassScoreDistribution = new double[currentIterScoreDist.keySet().size()];
+            int currentIterationTargetClassScoreDistribution_cnt = 0;
             for (int i : currentIterScoreDist.keySet()) {
-                currentIterationTargetClassScoreDistribution[i] = currentIterScoreDist.get(i)[targetClassIndex];
+                currentIterationTargetClassScoreDistribution[currentIterationTargetClassScoreDistribution_cnt] =
+                        currentIterScoreDist.get(i)[targetClassIndex];
+                currentIterationTargetClassScoreDistribution_cnt++;
             }
+            //ToDO: implement a paired T-test by calculating for the same indices
             for (int numOfIterationsBack : numOfIterationsBackToAnalyze) {
                 if (currentIterationIndex >= numOfIterationsBack) {
                     TreeMap<Integer,double[]> prevIterScoreDist = evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex - numOfIterationsBack).getScoreDistributions();
                     double[] prevIterationTargetClassScoreDistribution = new double[prevIterScoreDist.keySet().size()];
+                    int prevIterationTargetClassScoreDistribution_cnt = 0;
                     for (int j : currentIterScoreDist.keySet()) {
-                        prevIterationTargetClassScoreDistribution[j] = prevIterScoreDist.get(j)[targetClassIndex];
+                        prevIterationTargetClassScoreDistribution[prevIterationTargetClassScoreDistribution_cnt] =
+                                prevIterScoreDist.get(j)[targetClassIndex];
+                        prevIterationTargetClassScoreDistribution_cnt++;
                     }
                     //t-test
                     batchTtest = new TTest();

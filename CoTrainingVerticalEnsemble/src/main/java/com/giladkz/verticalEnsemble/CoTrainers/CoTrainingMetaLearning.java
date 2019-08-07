@@ -241,17 +241,18 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             //step 2 - get the indices of the items we want to label (separately for each class)
             HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = new HashMap<>();
             HashMap<Integer, List<Integer>> instancesPerPartition = new HashMap<>();
-            HashMap<Integer, Integer> selectedInstancesRelativeIndexes = new HashMap<>(); //index (relative) -> assigned class
+            HashMap<Integer, Integer> selectedInstancesOrginalIndexes = new HashMap<>(); //index (relative) -> assigned class
             ArrayList<Integer> indicesOfAddedInstances = new ArrayList<>(); //index(original)
             //these are the indices of the array provided to Weka. They need to be converted to the Dataset indices
-            GetIndicesOfInstancesToLabelBasicRelativeIndex(dataset, instances_per_class_per_iteration, evaluationResultsPerSetAndInteration, instancesToAddPerClass, random_seed, unlabeledTrainingSetIndices, instancesPerPartition, selectedInstancesRelativeIndexes, indicesOfAddedInstances);
+            GetIndicesOfInstancesToLabelBasicRelativeIndex(dataset, instances_per_class_per_iteration, evaluationResultsPerSetAndInteration, instancesToAddPerClass, random_seed, unlabeledTrainingSetIndices, instancesPerPartition, selectedInstancesOrginalIndexes, indicesOfAddedInstances);
 
             super.WriteInformationOnAddedItems(instancesToAddPerClass, i, exp_id,iteration,weight_for_log,instancesPerPartition, properties, dataset);
 
             //selected batch meta-data
-            for (Integer instance: selectedInstancesRelativeIndexes.keySet()){
-                Integer originalInstancePos = unlabeledTrainingSetIndices.get(instance);
-                Integer assignedClass = selectedInstancesRelativeIndexes.get(instance);
+            for (Integer instance: selectedInstancesOrginalIndexes.keySet()){
+                //Integer originalInstancePos = unlabeledTrainingSetIndices.get(instance);
+                Integer originalInstancePos = instance;
+                Integer assignedClass = selectedInstancesOrginalIndexes.get(instance);
                 TreeMap<Integer,AttributeInfo> instanceAttributeCurrentIteration = instanceAttributes.getInstanceAssignmentMetaFeatures(
                         unlabeledToMetaFeatures,dataset,
                         i, evaluationResultsPerSetAndInterationTree,
@@ -272,7 +273,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                     unlabeledToMetaFeatures,labeledToMetaFeatures,
                     i, evaluationResultsPerSetAndInterationTree,
                     unifiedDatasetEvaulationResults, targetClassIndex/*dataset.getTargetColumnIndex()*/,
-                    new ArrayList<>(selectedInstancesRelativeIndexes.keySet()), selectedInstancesRelativeIndexes, properties);
+                    new ArrayList<>(selectedInstancesOrginalIndexes.keySet()), selectedInstancesOrginalIndexes, properties);
             int[] batchInfoToWrite = new int[3];
             batchInfoToWrite[0]=exp_id;
             batchInfoToWrite[1]=i;
