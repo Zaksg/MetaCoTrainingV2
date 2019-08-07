@@ -4,6 +4,9 @@
       <root url="jar://$PROJECT_DIR$/CoTrainingVerticalEnsemble/src/weka.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/CoTrainingVerticalEnsemble/src/weka.jar!/" />
+      <root url="jar://$PROJECT_DIR$/CoTrainingVerticalEnsemble/src/weka.jar!/" />
+    </SOURCES>
   </library>
 </component>

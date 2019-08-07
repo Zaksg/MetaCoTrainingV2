@@ -284,6 +284,7 @@ public class ScoreDistributionBasedAttributes {
                 ("medianDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
                         , deltaBetweenGroups.getPercentile(50), -1);
         partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), medianDeltaScoreDist);
+
         //t-test on scores per group
         TTest tTest = new TTest();
         double TTestStatistic = tTest.t(instanceScoreTargetClassGroup1,instanceScoreTargetClassGroup2);

@@ -182,6 +182,7 @@ public abstract class CoTrainerAbstract {
                 return j48;
             case "SVM":
                 SMO svm = new SMO();
+                svm.setBuildCalibrationModels(true);
                 return svm;
             case "RandomForest":
                 RandomForest randomForest = new RandomForest();
