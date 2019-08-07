@@ -218,7 +218,8 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                             unlabeledToMetaFeatures,labeledToMetaFeatures,
                             i, evaluationResultsPerSetAndInterationTree,
                             unifiedDatasetEvaulationResults, targetClassIndex/*dataset.getTargetColumnIndex()*/,
-                            instancesBatchSelectedPos, assignedLabelsSelectedIndex, properties);
+                            instancesBatchSelectedPos, assignedLabelsOriginalIndex/*assignedLabelsSelectedIndex*/
+                            , properties);
 
                     int[] batchInfoToWrite = new int[3];
                     batchInfoToWrite[0]=exp_id;
