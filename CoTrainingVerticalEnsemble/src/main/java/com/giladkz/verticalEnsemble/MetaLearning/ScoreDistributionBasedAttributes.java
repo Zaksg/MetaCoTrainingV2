@@ -27,8 +27,10 @@ public class ScoreDistributionBasedAttributes {
 
     private double histogramItervalSize = 0.1;
 
+
+
     /* When we look at the previous iterations, we can look at "windows" of varying size. This list specifies the
-        number of iterations back (from the n-1) in each window. The attributes for each are calculated separately */
+            number of iterations back (from the n-1) in each window. The attributes for each are calculated separately */
     private List<Integer> numOfIterationsBackToAnalyze = Arrays.asList(1,3,5,10);
     private List<Double> confidenceScoreThresholds = Arrays.asList(0.5001, 0.75, 0.9, 0.95);
 
@@ -42,13 +44,14 @@ public class ScoreDistributionBasedAttributes {
      * @param evaluationResultsPerSetAndInteration
      * @param unifiedDatasetEvaulationResults
      * @param targetClassIndex
+     * @param type
      * @param properties
      * @return
      * @throws Exception
      */
     public TreeMap<Integer,AttributeInfo> getScoreDistributionBasedAttributes(Dataset unlabeledSamplesDataset, Dataset labeledSamplesDataset
             , int currentIterationIndex, TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInteration,
-             EvaluationPerIteraion unifiedDatasetEvaulationResults, int targetClassIndex, Properties properties) throws Exception {
+             EvaluationPerIteraion unifiedDatasetEvaulationResults, int targetClassIndex, String type, Properties properties) throws Exception {
 
         TreeMap<Integer,AttributeInfo> attributes = new TreeMap<>();
 
@@ -61,7 +64,16 @@ public class ScoreDistributionBasedAttributes {
         NOTE: we currently analyze only the score distributions, but we can also extract the information provided by Weka for each evaluation
          */
 
-
+        /*
+        * method type: reg or td
+        * 1) td: for score distribution of the dataset after "selected batch" - by the batch generator
+        * 2) reg: for the score distribution of the current dataset
+        * */
+        if(Objects.equals(type, "td")){
+            setNumOfIterationsBackToAnalyze(Arrays.asList(1,2,4,6,11));
+        }else{
+            setNumOfIterationsBackToAnalyze(Arrays.asList(1,3,5,10));
+        }
 
         //region Generate the averaging and multiplication score distributions for all iterations
         //TODO: this really needs to be saved in a cache with only incremental updates. For large datasets this can take a long time
@@ -1072,5 +1084,7 @@ public class ScoreDistributionBasedAttributes {
         return generalStatisticsAttributes;
     }
 
-
+    public void setNumOfIterationsBackToAnalyze(List<Integer> numOfIterationsBackToAnalyze) {
+        this.numOfIterationsBackToAnalyze = numOfIterationsBackToAnalyze;
+    }
 }

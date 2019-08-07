@@ -157,7 +157,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             scoreDistributionCurrentIteration = scoreDistributionBasedAttributes.getScoreDistributionBasedAttributes(
                     unlabeledToMetaFeatures,labeledToMetaFeatures,
                     i, evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults,
-                    targetClassIndex, properties);
+                    targetClassIndex,"reg", properties);
 
 
             ArrayList<ArrayList<Integer>> batchesInstancesList = new ArrayList<>();
