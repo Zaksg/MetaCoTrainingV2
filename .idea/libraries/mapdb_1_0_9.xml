@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="mapdb-1.0.9">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/mapdb/mapdb/1.0.9/mapdb-1.0.9.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

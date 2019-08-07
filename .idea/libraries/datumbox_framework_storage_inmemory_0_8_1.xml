@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="datumbox-framework-storage-inmemory-0.8.1">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/datumbox/datumbox-framework-storage-inmemory/0.8.1/datumbox-framework-storage-inmemory-0.8.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="libsvm-3.22">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/datumbox/libsvm/3.22/libsvm-3.22.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

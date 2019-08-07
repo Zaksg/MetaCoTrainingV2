@@ -1,0 +1,1200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="5666a6b6-4ebe-4e90-934b-a8a100ec7191" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_code_findbugs_jsr305_1_3_9.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_errorprone_error_prone_annotations_2_1_3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_guava_guava_25_0_jre.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__com_google_j2objc_j2objc_annotations_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_checkerframework_checker_compat_qual_2_0_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_codehaus_mojo_animal_sniffer_annotations_1_14.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaDataGeneration.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstancesBatchAttributes.java" afterDir="false" />
+    </list>
+    <ignored path="$PROJECT_DIR$/out/" />
+    <ignored path="$PROJECT_DIR$/target/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CompilerWorkspaceConfiguration">
+    <option name="MAKE_PROJECT_ON_SAVE" value="true" />
+    <option name="COMPILER_PROCESS_ADDITIONAL_VM_OPTIONS" value="-Xms1g -Xmx10g" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/CoTrainingVerticalEnsemble$App.coverage" NAME="App Coverage Results" MODIFIED="1511085522104" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.giladkz.verticalEnsemble.*</FILTER>
+    </SUITE>
+    <SUITE FILE_PATH="coverage/CoTrainingVerticalEnsemble$App.ic" NAME="App Coverage Results" MODIFIED="1564747658734" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.giladkz.verticalEnsemble.*</FILTER>
+    </SUITE>
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="CoTrainingMetaLearning.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2114">
+              <caret line="172" selection-start-line="172" selection-end-line="172" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="InstanceAttributes.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1064">
+              <caret line="85" column="24" selection-start-line="85" selection-start-column="24" selection-end-line="85" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="InstancesBatchAttributes.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstancesBatchAttributes.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="81">
+              <caret line="303" column="28" selection-start-line="303" selection-start-column="28" selection-end-line="303" selection-end-column="28" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EvaluationPerIteraion.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationPerIteraion.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="406">
+              <caret line="33" selection-start-line="33" selection-end-line="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Column.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Column.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="112">
+              <caret line="8" column="9" selection-start-line="8" selection-start-column="9" selection-end-line="8" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="App.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2086">
+              <caret line="176" selection-start-line="176" selection-end-line="176" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EvaluationInfo.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationInfo.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="490">
+              <caret line="38" column="62" selection-start-line="38" selection-start-column="62" selection-end-line="38" selection-end-column="62" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CoTrainerAbstract.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerAbstract.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="6398">
+              <caret line="475" selection-start-line="475" selection-end-line="475" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ScoreDistributionBasedAttributes.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2114">
+              <caret line="166" selection-start-line="166" selection-end-line="166" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EvaluationAnalysisFunctions.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1568">
+              <caret line="119" column="27" selection-start-line="119" selection-start-column="27" selection-end-line="119" selection-end-column="27" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>generate</find>
+      <find>targetClass</find>
+      <find>order</find>
+      <find>tbl_Test_Set_Evaluation_Results</find>
+      <find>testDataset</find>
+      <find>ARFF</find>
+      <find>targetColumnIndex</find>
+      <find>trainingDataset</find>
+      <find>avera</find>
+      <find>generalPercentageByScoreHistogram</find>
+      <find>confidenceScoreThresholds</find>
+      <find>EvalInfo</find>
+      <find>targetClassIndex</find>
+      <find>previousIterationsPairedTTestStatistics</find>
+      <find>maxTTestStatisticForScoreDistributionAtt</find>
+      <find>attributes</find>
+      <find>get</find>
+      <find>coTrainer_meta_model</find>
+      <find>tbl_Batches_Meta_Data</find>
+      <find>public TreeMap&lt;Integer,AttributeInfo&gt; getScoreDistributionBasedAttributes(Dataset trainingDataset, Dataset testDataset</find>
+      <find>getScoreDistributionBasedAttributes</find>
+      <find>Arra</find>
+      <find>calculateScoreDistributionStatisticsOverMultipleIterations</find>
+      <find>zaks</find>
+      <find>InstanceAttributes</find>
+      <find>relativeIndex</find>
+      <find>unlabeledTrainingSetIndices</find>
+      <find>instancePosRelativeIndex</find>
+      <find>unlabeledSamplesDataset</find>
+      <find>counter</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/DiscreteColumn.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Operator.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/ColumnInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/foldType.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Fold.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Loader.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/NumericColumn.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/ValueFunctions/MutualInformationValueFunction.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/ValueFunctions/ValueFunctionInterface.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerInterface.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/FoldsInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/ValueFunctions/RandomValues.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/FeatureSelectors/FeatureSelectorInterface.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Discretizers/DiscretizerInterface.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Discretizers/EqualRangeBinsDiscretizer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/AUC.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/QuickSort.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/SortUtils.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/AttributeInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/AttributeInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/Operator.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/UnaryOperator.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/StatisticOperations.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/StandardScoreUnaryOperator.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/EqualRangeDiscretizerUnaryOperator.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/FeatureSelectors/RandomParitionFeatureSelector.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Dataset.java" />
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/EmployeeGuavaCacheUtil.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CacheDemo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CacheUtil.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/config.properties" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationPerIteraion.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstancesBatchAttributes.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerOriginal.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerEnsemble.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaDataGeneration.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationInfo.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainMetaModelLoded.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerAbstract.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java" />
+      </list>
+    </option>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" fullScreen="true">
+    <option name="width" value="2560" />
+    <option name="height" value="1440" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="AndroidView" />
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="verticalEnsemble" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="verticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="CoTrainers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="verticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="Data" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="java" type="462c0819:PsiDirectoryNode" />
+              <item name="verticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="MetaLearning" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CoTrainingVerticalEnsemble" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CoTrainingVerticalEnsemble" type="47feb1d3:ProjectViewModuleNode" />
+              <item name="CoTrainingVerticalEnsemble" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///Users/giladkatz/IdeaProjects/CoTrainingVerticalEnsemble/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerOriginal.java" />
+    <property name="extract.method.default.visibility" value="private" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="MavenSettings" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.giladkz.verticalEnsemble.Data" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Application.App">
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+    </configuration>
+    <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.giladkz.verticalEnsemble.App" />
+      <module name="CoTrainingVerticalEnsemble" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.giladkz.verticalEnsemble.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+    </configuration>
+    <configuration name="CacheDemo" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.giladkz.verticalEnsemble.CacheDemo" />
+      <module name="CoTrainingVerticalEnsemble" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.giladkz.verticalEnsemble.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    </configuration>
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <patterns />
+    </configuration>
+    <configuration default="true" type="TestNG" factoryName="TestNG">
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="SUITE_NAME" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="GROUP_NAME" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <option name="OUTPUT_DIRECTORY" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <option name="USE_DEFAULT_REPORTERS" value="false" />
+      <option name="PROPERTIES_FILE" />
+      <properties />
+      <listeners />
+    </configuration>
+    <list>
+      <item itemvalue="Application.App" />
+      <item itemvalue="Application.CacheDemo" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.App" />
+        <item itemvalue="Application.CacheDemo" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SbtLocalSettings">
+    <option name="modificationStamps">
+      <map>
+        <entry key="$PROJECT_DIR$/../morpheous" value="1477420790000" />
+      </map>
+    </option>
+  </component>
+  <component name="StructuralSearchPlugin">
+    <searchConfiguration name="user defined" created="1564456793807" text="getScoreDistributionBasedAttributes" recursive="true" caseInsensitive="true" type="JAVA" history="1" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration>$USER_HOME$/.subversion</configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="5666a6b6-4ebe-4e90-934b-a8a100ec7191" name="Default" comment="" />
+      <created>1507898204491</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1507898204491</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="0" width="2560" height="1440" extended-state="0" />
+    <layout>
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Palette&#9;" order="3" />
+      <window_info id="Image Layers" order="2" />
+      <window_info anchor="right" id="Capture Analysis" order="3" />
+      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info anchor="right" id="Maven Projects" order="3" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32900944" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.32853025" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info id="Capture Tool" order="2" />
+      <window_info id="Designer" order="2" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.28398436" />
+      <window_info anchor="bottom" id="Problems" order="7" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info id="UI Designer" order="2" />
+      <window_info anchor="right" id="Theme Preview" order="3" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.24639769" />
+      <window_info anchor="right" id="Data View" order="3" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Coverage" order="4" side_tool="true" weight="0.3296875" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3040346" />
+      <window_info anchor="bottom" id="Messages" order="7" weight="0.35230547" />
+    </layout>
+    <layout-to-restore>
+      <window_info anchor="right" id="Palette" order="3" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Capture Analysis" order="7" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Problems" order="11" />
+      <window_info anchor="right" id="Data View" order="5" />
+      <window_info id="Structure" order="1" weight="0.25" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="9" show_stripe_button="false" />
+      <window_info id="Image Layers" order="5" />
+      <window_info id="Designer" order="3" />
+      <window_info id="UI Designer" order="4" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="right" id="Theme Preview" order="8" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" id="Palette&#9;" order="6" />
+      <window_info anchor="bottom" id="Terminal" order="10" />
+      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info id="Favorites" order="6" side_tool="true" />
+      <window_info id="Capture Tool" order="2" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Messages" order="8" weight="0.32805756" />
+      <window_info anchor="right" id="Maven Projects" order="4" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.30763888" />
+    </layout-to-restore>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/FoldsInfo.java</url>
+          <line>131</line>
+          <properties />
+          <option name="timeStamp" value="17" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java</url>
+          <line>479</line>
+          <properties />
+          <option name="timeStamp" value="59" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java</url>
+          <line>155</line>
+          <properties />
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java</url>
+          <line>53</line>
+          <properties />
+          <option name="timeStamp" value="97" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>369</line>
+          <properties />
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>329</line>
+          <properties />
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Dataset.java</url>
+          <line>986</line>
+          <properties />
+          <option name="timeStamp" value="155" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java</url>
+          <line>176</line>
+          <properties />
+          <option name="timeStamp" value="158" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>38</line>
+          <properties />
+          <option name="timeStamp" value="162" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java</url>
+          <line>67</line>
+          <properties />
+          <option name="timeStamp" value="165" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java</url>
+          <line>90</line>
+          <properties />
+          <option name="timeStamp" value="166" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>60</line>
+          <properties />
+          <option name="timeStamp" value="171" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>80</line>
+          <properties />
+          <option name="timeStamp" value="173" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java</url>
+          <line>128</line>
+          <properties />
+          <option name="timeStamp" value="179" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>172</line>
+          <properties />
+          <option name="timeStamp" value="183" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerAbstract.java</url>
+          <line>475</line>
+          <properties />
+          <option name="timeStamp" value="187" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java</url>
+          <line>160</line>
+          <properties />
+          <option name="timeStamp" value="217" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java</url>
+          <line>166</line>
+          <properties />
+          <option name="timeStamp" value="245" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java</url>
+          <line>37</line>
+          <properties />
+          <option name="timeStamp" value="255" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java</url>
+          <line>95</line>
+          <properties />
+          <option name="timeStamp" value="258" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java</url>
+          <line>126</line>
+          <properties />
+          <option name="timeStamp" value="265" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java</url>
+          <line>69</line>
+          <properties />
+          <option name="timeStamp" value="266" />
+        </line-breakpoint>
+      </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <option name="time" value="267" />
+    </breakpoint-manager>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>iterationScoreDistPerPartition.get(partition).get(instance)[targetClassIndex]</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>unlabeledTrainingSetIndices</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>previousIterationsTTestStatistics</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>currentScoreDistributionStatistics</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>belowThresholdValues</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>aboveThresholdValues</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>values</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>indicesOfIndicesOverTheThreshold.get(i</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>indicesOfIndicesOverTheThreshold</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Discretizers/DiscretizerAbstract.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="12" column="62" selection-start-line="12" selection-start-column="62" selection-end-line="12" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/DateColumn.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="19" column="69" selection-start-line="19" selection-start-column="69" selection-end-line="19" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/src.zip!/java/sql/Statement.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14476">
+          <caret line="1057" column="16" selection-start-line="1057" selection-start-column="16" selection-end-line="1057" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/mysql/mysql-connector-java/5.1.6/mysql-connector-java-5.1.6.jar!/com/mysql/jdbc/PreparedStatement.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14">
+          <caret line="1746" selection-start-line="1746" selection-end-line="1746" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/QuickSort.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1400">
+          <caret line="102" column="21" selection-start-line="102" selection-start-column="21" selection-end-line="102" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/SortUtils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/AttributeInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="98">
+          <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Discretizers/EqualRangeBinsDiscretizer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="28">
+          <caret line="2" selection-start-line="2" selection-end-line="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/src.zip!/java/lang/Object.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="62" column="33" selection-start-line="62" selection-start-column="33" selection-end-line="62" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/Operator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="98">
+          <caret line="12" column="22" selection-start-line="12" selection-start-column="22" selection-end-line="12" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Operator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="98">
+          <caret line="9" column="22" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/StandardScoreUnaryOperator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="37" column="59" selection-start-line="37" selection-start-column="59" selection-end-line="37" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/UnaryOperator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="16" column="22" selection-start-line="16" selection-start-column="22" selection-end-line="16" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Operators/UnaryOperators/EqualRangeDiscretizerUnaryOperator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1050">
+          <caret line="82" column="9" selection-start-line="82" selection-start-column="9" selection-end-line="82" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/StatisticOperations.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1540">
+          <caret line="121" column="88" selection-start-line="121" selection-start-column="88" selection-end-line="121" selection-end-column="88" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/java/com/giladkz/verticalEnsemble/AppTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="23" column="46" selection-start-line="23" selection-start-column="46" selection-end-line="23" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/FeatureSelectors/RandomParitionFeatureSelector.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="546">
+          <caret line="45" selection-start-line="45" selection-end-line="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Loader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="28" column="52" selection-start-line="28" selection-start-column="52" selection-end-line="28" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/FoldsInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="34" column="172" selection-start-line="34" selection-start-column="172" selection-end-line="34" selection-end-column="172" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar!/com/google/common/base/Preconditions.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4424">
+          <caret line="321" selection-start-line="321" selection-end-line="321" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar!/com/google/common/cache/LocalCache.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="10668">
+          <caret line="890" selection-start-line="890" selection-end-line="890" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CacheUtil.java" />
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/EmployeeGuavaCacheUtil.java" />
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CacheDemo.java" />
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="11" selection-start-line="11" selection-end-line="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/DiscreteColumn.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="20" selection-start-line="20" selection-end-line="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/Programming/Weka/weka.jar!/weka/classifiers/functions/SMO.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2772">
+          <caret line="238" column="17" selection-start-line="238" selection-start-column="11" selection-end-line="238" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/Programming/Weka/weka.jar!/weka/classifiers/trees/J48.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1120">
+          <caret line="111" column="26" selection-start-line="111" selection-start-column="26" selection-end-line="111" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/Programming/Weka/weka.jar!/weka/classifiers/AbstractClassifier.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1428">
+          <caret line="120" selection-start-line="120" selection-end-line="120" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.2/commons-math3-3.2-sources.jar!/org/apache/commons/math3/stat/inference/TTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="80" column="25" selection-start-line="80" selection-start-column="18" selection-end-line="80" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/NumericColumn.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="15" selection-start-line="15" selection-end-line="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/config.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="42">
+          <caret line="3" column="56" selection-start-line="3" selection-start-column="56" selection-end-line="3" selection-end-column="56" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Fold.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="509">
+          <caret line="201" column="25" selection-start-line="201" selection-start-column="25" selection-end-line="201" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/StatisticsCalculations/AUC.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="33" column="25" selection-start-line="33" selection-start-column="25" selection-end-line="33" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerOriginal.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="882">
+          <caret line="69" column="70" selection-start-line="69" selection-start-column="70" selection-end-line="69" selection-end-column="70" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaDataGeneration.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="868">
+          <caret line="73" column="70" selection-start-line="73" selection-start-column="70" selection-end-line="73" selection-end-column="70" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerEnsemble.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="938">
+          <caret line="72" column="52" selection-start-line="72" selection-start-column="52" selection-end-line="72" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainMetaModelLoded.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4634">
+          <caret line="350" column="24" selection-start-line="350" selection-start-column="24" selection-end-line="350" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Dataset.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="333">
+          <caret line="378" column="17" selection-start-line="378" selection-start-column="17" selection-end-line="378" selection-end-column="17" />
+          <folding>
+            <element signature="e#15983#15984#0" expanded="true" />
+            <element signature="e#16043#16044#0" expanded="true" />
+            <element signature="e#16213#16214#0" expanded="true" />
+            <element signature="e#16266#16267#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/ColumnInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="20" selection-start-line="20" selection-end-line="20" />
+          <folding>
+            <element signature="e#635#636#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/apache/commons/commons-math3/3.2/commons-math3-3.2-sources.jar!/org/apache/commons/math3/stat/descriptive/DescriptiveStatistics.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="173" selection-start-line="173" selection-end-line="173" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/Column.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="8" column="9" selection-start-line="8" selection-start-column="9" selection-end-line="8" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationPerIteraion.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="406">
+          <caret line="33" selection-start-line="33" selection-end-line="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/Data/EvaluationInfo.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="490">
+          <caret line="38" column="62" selection-start-line="38" selection-start-column="62" selection-end-line="38" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/App.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2086">
+          <caret line="176" selection-start-line="176" selection-end-line="176" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainerAbstract.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="6398">
+          <caret line="475" selection-start-line="475" selection-end-line="475" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/ScoreDistributionBasedAttributes.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2114">
+          <caret line="166" selection-start-line="166" selection-end-line="166" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/GeneralFunctions/EvaluationAnalysisFunctions.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1568">
+          <caret line="119" column="27" selection-start-line="119" selection-start-column="27" selection-end-line="119" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/CoTrainers/CoTrainingMetaLearning.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2114">
+          <caret line="172" selection-start-line="172" selection-end-line="172" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstanceAttributes.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1064">
+          <caret line="85" column="24" selection-start-line="85" selection-start-column="24" selection-end-line="85" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/giladkz/verticalEnsemble/MetaLearning/InstancesBatchAttributes.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="81">
+          <caret line="303" column="28" selection-start-line="303" selection-start-column="28" selection-end-line="303" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ArtifactsStructureConfigurable.UI">
+        <settings>
+          <artifact-editor />
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="FacetStructureConfigurable.UI">
+        <settings>
+          <last-edited>No facets are configured</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="GlobalLibrariesConfigurable.UI">
+        <settings>
+          <last-edited>scala-sdk-2.11.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="JdkListConfigurable.UI">
+        <settings>
+          <last-edited>1.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ModuleStructureConfigurable.UI">
+        <settings>
+          <last-edited>CoTrainingVerticalEnsemble</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ProjectJDKs.UI">
+        <settings>
+          <last-edited>1.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ProjectLibrariesConfigurable.UI">
+        <settings>
+          <last-edited>Maven: junit:junit:3.8.1</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>
