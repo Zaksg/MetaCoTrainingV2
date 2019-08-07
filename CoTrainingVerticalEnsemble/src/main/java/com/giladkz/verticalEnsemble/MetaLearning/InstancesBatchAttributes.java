@@ -298,7 +298,7 @@ public class InstancesBatchAttributes {
                         currentIterScoreDist.get(i)[targetClassIndex];
                 currentIterationTargetClassScoreDistribution_cnt++;
             }
-            //ToDO: implement a paired T-test by calculating for the same indices
+            //consider: implement a paired T-test by calculating for the same indices
             for (int numOfIterationsBack : numOfIterationsBackToAnalyze) {
                 if (currentIterationIndex >= numOfIterationsBack) {
                     TreeMap<Integer,double[]> prevIterScoreDist = evaluationResultsPerSetAndInteration.get(partitionIndex).getIterationEvaluationInfo(currentIterationIndex - numOfIterationsBack).getScoreDistributions();

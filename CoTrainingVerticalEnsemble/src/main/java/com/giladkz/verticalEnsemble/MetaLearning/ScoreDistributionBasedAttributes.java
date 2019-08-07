@@ -140,7 +140,8 @@ public class ScoreDistributionBasedAttributes {
         //next, get the per-iteration statistics of the unified model
         TreeMap<Integer, AttributeInfo> unifiedSetIterationBasedAttributes =
                 calculateScoreDistributionStatisticsOverMultipleIterations(currentIterationIndex,
-                        unifiedDatasetEvaulationResults.getAllIterationsScoreDistributions(),targetClassIndex, "unified", properties);
+                        unifiedDatasetEvaulationResults.getAllIterationsScoreDistributions(),
+                        targetClassIndex, "unified", properties);
         for (int pos : unifiedSetIterationBasedAttributes.keySet()) {
             iterationsBasedStatisticsAttributes.put(iterationsBasedStatisticsAttributes.size(), unifiedSetIterationBasedAttributes.get(pos));
         }
@@ -166,13 +167,16 @@ public class ScoreDistributionBasedAttributes {
         //region Group 3 - Compare the score distributions for the various approaches described above (current iteration, past iterations)
         TreeMap<Integer,AttributeInfo> crossPartitionIterationsBasedStatisticsAttributes = new TreeMap<>();
 
-        //region We now create a single data structure containing all the distributions and then use a pair of loops to evaluate every pair once
+        //region We now create a single data structure containing all the distributions and then
+        // use a pair of loops to evaluate every pair once
         TreeMap<Integer, TreeMap<Integer, TreeMap<Integer,double[]>>> allPartitionsAndDistributions = new TreeMap<>();
         TreeMap<Integer, String> identifierPartitionsMap = new TreeMap<>();
 
-        //insert all the "basic" paritions (this supports more then two partitions, but may case a problem during the meta learning phase)
+        //insert all the "basic" paritions (this supports more then two partitions,
+        // but may case a problem during the meta learning phase)
         for (int partitionIndex : evaluationResultsPerSetAndInteration.keySet()) {
-            allPartitionsAndDistributions.put(allPartitionsAndDistributions.size(), evaluationResultsPerSetAndInteration.get(partitionIndex).getAllIterationsScoreDistributions());
+            allPartitionsAndDistributions.put(allPartitionsAndDistributions.size()
+                    , evaluationResultsPerSetAndInteration.get(partitionIndex).getAllIterationsScoreDistributions());
             identifierPartitionsMap.put(identifierPartitionsMap.size(), "partition_" + partitionIndex);
         }
 
@@ -187,18 +191,26 @@ public class ScoreDistributionBasedAttributes {
         identifierPartitionsMap.put(identifierPartitionsMap.size(), "multiplication");
         //endregion
 
-/*        //now we use a pair of loops to analyze every pair of partitions once
-        for (int i=0; i<allPartitionsAndDistributions.size()-1; i++) {
-            for (int j=1; j<allPartitionsAndDistributions.size(); j++) {
+        //now we use a pair of loops to analyze every pair of partitions once
+        for (int i=0; i<allPartitionsAndDistributions.size()-1-2; i++) {
+            for (int j=1; j<allPartitionsAndDistributions.size()-2; j++) {
                 if (i != j) {
-                    TreeMap<Integer, AttributeInfo> crossPartitionFeatures = calculateScoreDistributionStatisticsOverMultipleSetsAndIterations(currentIterationIndex,
-                            allPartitionsAndDistributions.get(i), allPartitionsAndDistributions.get(j), targetClassIndex, "_" + identifierPartitionsMap.get(i) + "_" + identifierPartitionsMap.get(j) , properties);
+                    TreeMap<Integer, AttributeInfo> crossPartitionFeatures =
+                            calculateScoreDistributionStatisticsOverMultipleSetsAndIterations(
+                                    currentIterationIndex
+                                    , allPartitionsAndDistributions.get(i),
+                                    allPartitionsAndDistributions.get(j)
+                                    , targetClassIndex,
+                                    "_" + identifierPartitionsMap.get(i) + "_" + identifierPartitionsMap.get(j),
+                                    properties);
                     for (int key: crossPartitionFeatures.keySet()) {
-                        crossPartitionIterationsBasedStatisticsAttributes.put(crossPartitionIterationsBasedStatisticsAttributes.size(), crossPartitionFeatures.get(key));
+                        crossPartitionIterationsBasedStatisticsAttributes.put
+                                (crossPartitionIterationsBasedStatisticsAttributes.size(), crossPartitionFeatures.get(key));
                     }
                 }
             }
-        }*/
+        }
+        //attributes.putAll(crossPartitionIterationsBasedStatisticsAttributes);
         //endregion
 
 
@@ -216,13 +228,71 @@ public class ScoreDistributionBasedAttributes {
      * @return
      * @throws Exception
      */
-    public TreeMap<Integer,AttributeInfo> calculateScoreDistributionStatisticsOverMultipleSetsAndIterations(int currentIteration,
-            TreeMap<Integer, double[][]> iterationsEvaluationInfo1, TreeMap<Integer, double[][]> iterationsEvaluationInfo2, int targetClassIndex, String identifier, Properties properties) throws Exception {
+    public TreeMap<Integer,AttributeInfo> calculateScoreDistributionStatisticsOverMultipleSetsAndIterations(
+            int currentIteration, TreeMap<Integer, TreeMap<Integer, double[]>> iterationsEvaluationInfo1,
+            TreeMap<Integer, TreeMap<Integer, double[]>> iterationsEvaluationInfo2, int targetClassIndex,
+            String identifier, Properties properties) throws Exception {
+        //The comparison is conducted as follows: we calculate difference statistics on
+        // the first, top 5, top 10 etc. Comparisons are only performed for the same time index
+        TreeMap<Integer,AttributeInfo> partitionBasedStatisticsAttributes = new TreeMap<>();
 
-        //The comparison is conducted as follows: we calculate difference statistics on the first, top 5, top 10 etc. Comparisons are only performed for the same time index
+        //get confidence scores per group
+        TreeMap<Integer, double[]> currentIterationScoreDistGroup1 = iterationsEvaluationInfo1.get(currentIteration);
+        TreeMap<Integer, double[]> currentIterationScoreDistGroup2 = iterationsEvaluationInfo2.get(currentIteration);
+
+        //instance delta score on target class
+        double[] instanceScoreTargetClassGroup1 = new double[currentIterationScoreDistGroup1.keySet().size()];
+        double[] instanceScoreTargetClassGroup2 = new double[currentIterationScoreDistGroup2.keySet().size()];
+        double[] instanceDeltaScoreTargetClass = new double[currentIterationScoreDistGroup1.keySet().size()];
+        DescriptiveStatistics deltaBetweenGroups= new DescriptiveStatistics();
+        int instanceScoreTargetClass_cnt = 0;
+        for (int ins:currentIterationScoreDistGroup1.keySet()) {
+            double insScoreGroup1 = currentIterationScoreDistGroup1.get(ins)[targetClassIndex];
+            double insScoreGroup2 = currentIterationScoreDistGroup2.get(ins)[targetClassIndex];
+            double delta = insScoreGroup1 - insScoreGroup2;
+            deltaBetweenGroups.addValue(delta);
+
+            instanceScoreTargetClassGroup1[instanceScoreTargetClass_cnt]=insScoreGroup1;
+            instanceScoreTargetClassGroup2[instanceScoreTargetClass_cnt]=insScoreGroup2;
+            instanceDeltaScoreTargetClass[instanceScoreTargetClass_cnt]=delta;
+            instanceScoreTargetClass_cnt++;
+        }
+        //extract DescriptiveStatistics statistics from instanceDeltaScoreTargetClass
+        //stats for distance cross partition
+        //max
+        AttributeInfo maxDeltaScoreDist = new AttributeInfo
+                ("maxDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
+                        , deltaBetweenGroups.getMax(), -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), maxDeltaScoreDist);
+        //min
+        AttributeInfo minDeltaScoreDist = new AttributeInfo
+                ("minDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
+                        , deltaBetweenGroups.getMin(), -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), minDeltaScoreDist);
+        //mean
+        AttributeInfo meanDeltaScoreDist = new AttributeInfo
+                ("meanDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
+                        , deltaBetweenGroups.getMean(), -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), meanDeltaScoreDist);
+        //std
+        AttributeInfo stdDeltaScoreDist = new AttributeInfo
+                ("stdDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
+                        , deltaBetweenGroups.getStandardDeviation(), -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), stdDeltaScoreDist);
+        //p-50
+        AttributeInfo medianDeltaScoreDist = new AttributeInfo
+                ("medianDeltaScoreDist_"+identifier+"_iteration_"+currentIteration, Column.columnType.Numeric
+                        , deltaBetweenGroups.getPercentile(50), -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), medianDeltaScoreDist);
+        //t-test on scores per group
+        TTest tTest = new TTest();
+        double TTestStatistic = tTest.t(instanceScoreTargetClassGroup1,instanceScoreTargetClassGroup2);
+        AttributeInfo tTest_att = new AttributeInfo("t_test_"+identifier+"_iteration_"+currentIteration
+                ,Column.columnType.Numeric, TTestStatistic, -1);
+        partitionBasedStatisticsAttributes.put(partitionBasedStatisticsAttributes.size(), tTest_att);
 
 
-        return null;
+        return partitionBasedStatisticsAttributes;
     }
 
 
@@ -270,8 +340,7 @@ public class ScoreDistributionBasedAttributes {
         /*We operate under the assumption that the generalScoreStats object, which contains the current iteration's confidence scores
          * has already been populated */
 
-        /* We begin by loading the deltas of the confidence scores of consecutive iterations into the object.
-        TODO: We can use caching to save time. */
+        /* We begin by loading the deltas of the confidence scores of consecutive iterations into the object.*/
         for (int i=1; i<iterationsEvaluationInfo.size(); i++) {
             confidenceScoreDifferencesPerSingleIteration.put(i, new DescriptiveStatistics());
             TreeMap<Integer,double[]> currentIterationScoreDistribution =  iterationsEvaluationInfo.get(i);
