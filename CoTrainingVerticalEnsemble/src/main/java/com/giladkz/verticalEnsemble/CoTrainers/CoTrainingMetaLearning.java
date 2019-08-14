@@ -5,6 +5,7 @@ import com.giladkz.verticalEnsemble.Discretizers.DiscretizerAbstract;
 import com.giladkz.verticalEnsemble.MetaLearning.InstanceAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.InstancesBatchAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributes;
+import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributesTdBatch;
 import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import weka.core.converters.ArffSaver;
 
@@ -142,8 +143,10 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             TreeMap<Integer,AttributeInfo> scoreDistributionCurrentIteration = new TreeMap<>();
             scoreDistributionCurrentIteration = scoreDistributionBasedAttributes.getScoreDistributionBasedAttributes(
                     unlabeledToMetaFeatures,labeledToMetaFeatures,
-                    i, evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults,
-                    targetClassIndex/*dataset.getTargetColumnIndex()*/,"reg", properties);
+                    i, evaluationResultsPerSetAndInterationTree
+                    , unifiedDatasetEvaulationResults,
+                    targetClassIndex/*dataset.getTargetColumnIndex()*/
+                    ,"reg", properties);
             writeResultsToScoreDistribution(scoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
 
             ArrayList<ArrayList<Integer>> batchesInstancesList = new ArrayList<>();
@@ -221,8 +224,20 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                 batchInfoToWrite[1]=i;
                                 batchInfoToWrite[2]=batchIndex;
                                 writeBatchMetaDataInGroup.put(batchAttributeCurrentIterationList, batchInfoToWrite);
-
                                 batchIndex++;
+                                //run the classifier with this batch: on cloned dataset and re-create the run-experiment method (Batches_Score)
+                                writeSampleBatchScoreInGroup.putAll(
+                                        getBatchAucBeforeAndAfter(exp_id, iteration, true, i
+                                                , batchIndex, dataset, dataset.getTestFolds().get(0)
+                                                , dataset.getTrainingFolds().get(0)
+                                                , datasetPartitions,assignedLabelsOriginalIndex, labeledTrainingSetIndices, properties));
+                                //calculate td-score-distribution
+                                TreeMap<Integer,AttributeInfo> tdScoreDistributionCurrentIteration = tdScoreDist(dataset, feature_sets
+                                        , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
+                                        , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
+                                        , targetClassIndex, i, exp_id, properties);
+                                //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
+                                //ToDo: write td score dist to DB
                             }
                         }
                     }
@@ -418,7 +433,6 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         }
         return null;
     }
-
 
 
 
@@ -1041,6 +1055,71 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         att_id++;
         conn.close();
     }
+
+    private TreeMap<Integer,AttributeInfo> tdScoreDist(Dataset dataset
+            , HashMap<Integer, List<Integer>> feature_sets, HashMap<Integer, Integer> assignedLabelsOriginalIndex
+            , List<Integer> labeledTrainingSetIndices, List<Integer> unlabeledTrainingSetIndices
+            , TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInterationTree, EvaluationPerIteraion unifiedDatasetEvaulationResults
+            , int targetClassIndex, int i, int exp_id, Properties properties) throws Exception{
+        TreeMap<Integer,AttributeInfo> scores = new TreeMap<>();
+        ScoreDistributionBasedAttributesTdBatch scoreDist = new ScoreDistributionBasedAttributesTdBatch();
+
+        //add batch to the dataset
+        Dataset datasetAddedBatch = generateDatasetCopyWithBatchAdded(dataset, assignedLabelsOriginalIndex
+                , labeledTrainingSetIndices,  properties);
+
+        //labeled instances in the new dataset
+        List<Integer> labeledTrainingSetIndices_cloned = labeledTrainingSetIndices;
+        labeledTrainingSetIndices_cloned.addAll(assignedLabelsOriginalIndex.keySet());
+
+        //unlabeled instances in the new dataset
+        List<Integer> unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices;
+        unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices_cloned.stream().filter(line -> !labeledTrainingSetIndices_cloned.contains(line)).collect(Collectors.toList());
+
+        //change to the labeled and unlabeled format
+        Dataset labeledToMetaFeatures_td = datasetAddedBatch;
+        Dataset unlabeledToMetaFeatures_td = datasetAddedBatch;
+        boolean getDatasetInstancesSucc = false;
+        for (int numberOfTries = 0; numberOfTries < 5 && !getDatasetInstancesSucc; numberOfTries++) {
+            try{
+                labeledToMetaFeatures_td = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices_cloned,exp_id,properties);
+                unlabeledToMetaFeatures_td = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices_cloned,exp_id,properties);
+                getDatasetInstancesSucc = true;
+            }catch (Exception e){
+                Thread.sleep(1000);
+                System.out.println("failed reading file, sleep for 1 second, for try");
+                getDatasetInstancesSucc = false;
+            }
+        }
+        //eveluate results of the new dataset - 3 EvaluationInfo objects: 2 per partition + unified
+        HashMap<Integer,Dataset> datasetPartitions = new HashMap<>();
+        for (int index : feature_sets.keySet()) {
+            Dataset partition = datasetAddedBatch.replicateDatasetByColumnIndices(feature_sets.get(index));
+            datasetPartitions.put(index, partition);
+        }
+        HashMap<Integer, EvaluationInfo> evaluationPerPartition_td = new HashMap<>();
+        for (int partitionIndex : feature_sets.keySet()) {
+            EvaluationInfo evaluationResults = runClassifier(properties.getProperty("classifier"),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices_cloned),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices_cloned),
+                    new ArrayList<>(unlabeledTrainingSetIndices), properties);
+            evaluationPerPartition_td.put(partitionIndex, evaluationResults);
+        }
+        EvaluationInfo unifiedSetEvaluationResults_td = runClassifier(properties.getProperty("classifier"),
+                dataset.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices_cloned),
+                dataset.generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices_cloned),
+                new ArrayList<>(unlabeledTrainingSetIndices_cloned), properties);
+
+        //calculate meta features
+        scores = scoreDist.getScoreDistributionBasedAttributes(datasetAddedBatch
+                , evaluationPerPartition_td, unifiedSetEvaluationResults_td
+                , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
+                , labeledToMetaFeatures_td, unlabeledToMetaFeatures_td
+                , i, targetClassIndex, properties);
+
+        return scores;
+    }
+
 
     //all candidates for batches - for all partition and class
     private ArrayList<ArrayList<ArrayList<Integer>>> getTopCandidates(

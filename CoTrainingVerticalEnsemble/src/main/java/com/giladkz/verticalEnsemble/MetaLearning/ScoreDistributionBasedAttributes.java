@@ -25,14 +25,14 @@ public class ScoreDistributionBasedAttributes {
 
 
 
-    private double histogramItervalSize = 0.1;
+    protected double histogramItervalSize = 0.1;
 
 
 
     /* When we look at the previous iterations, we can look at "windows" of varying size. This list specifies the
             number of iterations back (from the n-1) in each window. The attributes for each are calculated separately */
-    private List<Integer> numOfIterationsBackToAnalyze = Arrays.asList(1,3,5,10);
-    private List<Double> confidenceScoreThresholds = Arrays.asList(0.5001, 0.75, 0.9, 0.95);
+    protected List<Integer> numOfIterationsBackToAnalyze = Arrays.asList(1,3,5,10);
+    protected List<Double> confidenceScoreThresholds = Arrays.asList(0.5001, 0.75, 0.9, 0.95);
 
     HashMap<String,TreeMap<Integer, Double>> generalPartitionPercentageByScoreHistogram = new HashMap<>();
 
@@ -143,7 +143,7 @@ public class ScoreDistributionBasedAttributes {
                     calculateScoreDistributionStatisticsOverMultipleIterations(currentIterationIndex,
                             evaluationResultsPerSetAndInteration.get(partitionIndex).getAllIterationsScoreDistributions(),targetClassIndex, "partition_" + partitionIndex, properties);
             for (int pos : paritionIterationBasedAttributes.keySet()) {
-                iterationsBasedStatisticsAttributes.put(iterationsBasedStatisticsAttributes.size(), paritionIterationBasedAttributes.get(pos));
+                iterationsBasedStatisticsAttributes.put(attributes.size() + iterationsBasedStatisticsAttributes.size(), paritionIterationBasedAttributes.get(pos));
             }
         }
         //endregion
@@ -155,7 +155,7 @@ public class ScoreDistributionBasedAttributes {
                         unifiedDatasetEvaulationResults.getAllIterationsScoreDistributions(),
                         targetClassIndex, "unified", properties);
         for (int pos : unifiedSetIterationBasedAttributes.keySet()) {
-            iterationsBasedStatisticsAttributes.put(iterationsBasedStatisticsAttributes.size(), unifiedSetIterationBasedAttributes.get(pos));
+            iterationsBasedStatisticsAttributes.put(attributes.size() + iterationsBasedStatisticsAttributes.size(), unifiedSetIterationBasedAttributes.get(pos));
         }
 
         //now the averaging and multiplication
@@ -163,14 +163,14 @@ public class ScoreDistributionBasedAttributes {
                 calculateScoreDistributionStatisticsOverMultipleIterations(1,
                         averageingScoreDistributionsPerIteration,targetClassIndex, "averaging", properties);
         for (int pos : averagingIterationBasedAttributes.keySet()) {
-            iterationsBasedStatisticsAttributes.put(iterationsBasedStatisticsAttributes.size(), averagingIterationBasedAttributes.get(pos));
+            iterationsBasedStatisticsAttributes.put(attributes.size() + iterationsBasedStatisticsAttributes.size(), averagingIterationBasedAttributes.get(pos));
         }
 
         TreeMap<Integer, AttributeInfo> multiplicationIterationBasedAttributes =
                 calculateScoreDistributionStatisticsOverMultipleIterations(1,
                         multiplicationScoreDistributionsPerIteration,targetClassIndex,"multiplication", properties);
         for (int pos : multiplicationIterationBasedAttributes.keySet()) {
-            iterationsBasedStatisticsAttributes.put(iterationsBasedStatisticsAttributes.size(), multiplicationIterationBasedAttributes.get(pos));
+            iterationsBasedStatisticsAttributes.put(attributes.size() + iterationsBasedStatisticsAttributes.size(), multiplicationIterationBasedAttributes.get(pos));
         }
         attributes.putAll(iterationsBasedStatisticsAttributes);
         //endregion
@@ -217,12 +217,12 @@ public class ScoreDistributionBasedAttributes {
                                     properties);
                     for (int key: crossPartitionFeatures.keySet()) {
                         crossPartitionIterationsBasedStatisticsAttributes.put
-                                (crossPartitionIterationsBasedStatisticsAttributes.size(), crossPartitionFeatures.get(key));
+                                (attributes.size() + crossPartitionIterationsBasedStatisticsAttributes.size(), crossPartitionFeatures.get(key));
                     }
                 }
             }
         }
-        //attributes.putAll(crossPartitionIterationsBasedStatisticsAttributes);
+        attributes.putAll(crossPartitionIterationsBasedStatisticsAttributes);
         //endregion
 
 
@@ -863,7 +863,11 @@ public class ScoreDistributionBasedAttributes {
         }
 
         for (double key : normalDistributionGoodnessOfFitPVAlues.keySet()) {
-            AttributeInfo normalDistributionAtt = new AttributeInfo("isNormallyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, normalDistributionGoodnessOfFitPVAlues.get(key) , 2);
+            double isNormal = 0.0;
+            if(normalDistributionGoodnessOfFitPVAlues.get(key)){
+                isNormal = 1.0;
+            }
+            AttributeInfo normalDistributionAtt = new AttributeInfo("isNormallyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, isNormal, 2);
             generalStatisticsAttributes.put(generalStatisticsAttributes.size(), normalDistributionAtt);
         }
         //endregion
@@ -887,7 +891,11 @@ public class ScoreDistributionBasedAttributes {
         }
 
         for (double key : logNormalDistributionGoodnessOfFitPVAlue.keySet()) {
-            AttributeInfo logNormalDistributionAtt = new AttributeInfo("isLogNormallyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, logNormalDistributionGoodnessOfFitPVAlue.get(key) , 2);
+            double isLogNormal = 0.0;
+            if(logNormalDistributionGoodnessOfFitPVAlue.get(key)){
+                isLogNormal = 1.0;
+            }
+            AttributeInfo logNormalDistributionAtt = new AttributeInfo("isLogNormallyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, isLogNormal, 2);
             generalStatisticsAttributes.put(generalStatisticsAttributes.size(), logNormalDistributionAtt);
         }
         //endregion
@@ -916,7 +924,11 @@ public class ScoreDistributionBasedAttributes {
         }
 
         for (double key : uniformDistributionGoodnessOfFitPVAlue.keySet()) {
-            AttributeInfo uniformDistributionAtt = new AttributeInfo("isUniformlyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, uniformDistributionGoodnessOfFitPVAlue.get(key) , 2);
+            double isUniform = 0.0;
+            if (uniformDistributionGoodnessOfFitPVAlue.get(key)){
+                isUniform = 1.0;
+            }
+            AttributeInfo uniformDistributionAtt = new AttributeInfo("isUniformlyDistirbutedAt" + key + "_" + identifier, Column.columnType.Discrete, isUniform, 2);
             generalStatisticsAttributes.put(generalStatisticsAttributes.size(), uniformDistributionAtt);
         }
         //endregion
