@@ -146,106 +146,184 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                     targetClassIndex/*dataset.getTargetColumnIndex()*/,"reg", properties);
             writeResultsToScoreDistribution(scoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
 
-            /*pick 1000 batches, train on cloned dataset, and get the AUC*/
             ArrayList<ArrayList<Integer>> batchesInstancesList = new ArrayList<>();
             List<TreeMap<Integer,AttributeInfo>> instanceAttributeCurrentIterationList = new ArrayList<>();
 
-
-            //pick random 1000 batches of 8 instances and get meta features
-            //TO-DO: extract random selection to different class in order to control the changes of other selection methods
+            //batches generation
             Random rnd = new Random((i + Integer.parseInt(properties.getProperty("randomSeed"))));
-            int numOfBatches = (int) Math.min(Integer.parseInt(properties.getProperty("numOfBatchedPerIteration")),Math.round(0.3*unlabeledTrainingSetIndices.size()));
-            for (int batchIndex = 0; batchIndex < numOfBatches; batchIndex++) {
-                ArrayList<Integer> instancesBatchOrginalPos = new ArrayList<>();
-                ArrayList<Integer> instancesBatchSelectedPos = new ArrayList<>();
+            System.out.println("Started generating batches");
+            //smart selection: get batches from the top 15% of classifiers scores
+            if (Objects.equals(properties.getProperty("batchSelection"), "smart")){
+                //create: structure: relative index -> [instance_pos, label]
+                ArrayList<ArrayList<ArrayList<Integer>>> topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
+                //generate batches
+                int batchIndex = 0;
+                HashMap<Character,int[]> pairsDict = new HashMap<>();
+                pairsDict.put('a',new int[]{0,1});
+                pairsDict.put('b',new int[]{0,2});
+                pairsDict.put('c',new int[]{0,3});
+                pairsDict.put('d',new int[]{1,2});
+                pairsDict.put('e',new int[]{1,3});
+                pairsDict.put('f',new int[]{2,3});
+                for(char pair_0_0 : "abcdef".toCharArray()) {
+                    for(char pair_0_1 : "abcdef".toCharArray()) {
+                        for(char pair_1_0 : "abcdef".toCharArray()) {
+                            for(char pair_1_1 : "abcdef".toCharArray()) {
+                                //structure:
+                                // [0]instancesBatchOrginalPos, [1]instancesBatchSelectedPos
+                                // [2]assignedLabelsOriginalIndex_0, [3]assignedLabelsOriginalIndex_1
+                                // [4]assignedLabelsSelectedIndex_0, [5]assignedLabelsSelectedIndex_1
+                                ArrayList<ArrayList<Integer>> generatedBatch = new ArrayList<>();
+                                generatedBatch = generateBatch(topSelectedInstancesCandidatesArr, pairsDict
+                                        ,pair_0_0, pair_0_1, pair_1_0, pair_1_1);
+                                HashMap<Integer, Integer> assignedLabelsOriginalIndex = new HashMap<>();
+                                HashMap<Integer, Integer> assignedLabelsSelectedIndex = new HashMap<>();
+                                //instance meta features
+                                for (int instance_id=0; instance_id < generatedBatch.get(0).size(); instance_id++){
+                                    int instancePos= generatedBatch.get(0).get(instance_id);
+                                    int relativeIndex = generatedBatch.get(1).get(instance_id);
+                                    int assignedClass=0;
+                                    if (generatedBatch.get(3).contains(instancePos)){
+                                        assignedClass=1;
+                                    }
+                                    assignedLabelsOriginalIndex.put(instancePos, assignedClass);
+                                    assignedLabelsSelectedIndex.put(relativeIndex, assignedClass);
+                                    //get instance meta features
+                                    TreeMap<Integer,AttributeInfo> instanceAttributeCurrentIteration = instanceAttributes.getInstanceAssignmentMetaFeatures(
+                                            unlabeledToMetaFeatures,dataset,
+                                            i, evaluationResultsPerSetAndInterationTree,
+                                            unifiedDatasetEvaulationResults, targetClassIndex,
+                                            instancePos, assignedClass, properties);
+                                    instanceAttributeCurrentIterationList.add(instanceAttributeCurrentIteration);
+                                    int[] instanceInfoToWrite = new int[5];
+                                    instanceInfoToWrite[0]=exp_id;
+                                    instanceInfoToWrite[1]=iteration;
+                                    instanceInfoToWrite[2]=i;
+                                    instanceInfoToWrite[3]=instancePos;
+                                    instanceInfoToWrite[4]=batchIndex;
+                                    writeInstanceMetaDataInGroup.put(instanceAttributeCurrentIteration, instanceInfoToWrite);
+                                }
 
-                HashMap<Integer, Integer> assignedLabelsOriginalIndex = new HashMap<>();
-                HashMap<Integer, Integer> assignedLabelsSelectedIndex = new HashMap<>();
-                HashMap<TreeMap<Integer,AttributeInfo>, int[]> writeInstanceMetaDataInGroupTemp = new HashMap<>();
-                int class0counter = 0;
-                int class1counter = 0;
-                for (int partitionIndex : evaluationResultsPerSetAndInteration.keySet()){
-                    //we need 8 distinct instances
-                    for (int sampleIndex = 0; sampleIndex < Integer.parseInt(properties.getProperty("instancesPerBatch"))/2; sampleIndex++) {
-                        int relativeIndex = rnd.nextInt(unlabeledTrainingSetIndices.size());
+                                //batch meta features
+                                //ToDo: check if these 2 rows needed
+                                //batchesInstancesList.add(generatedBatch.get(0));
+                                //batchInstancePosClass.put(batchIndex, new HashMap<>(assignedLabelsOriginalIndex));
+                                TreeMap<Integer,AttributeInfo> batchAttributeCurrentIterationList = instancesBatchAttributes.getInstancesBatchAssignmentMetaFeatures(
+                                        unlabeledToMetaFeatures,labeledToMetaFeatures,
+                                        i, evaluationResultsPerSetAndInterationTree,
+                                        unifiedDatasetEvaulationResults, targetClassIndex
+                                        , generatedBatch.get(0) /*generatedBatch.get(1)*/
+                                        , assignedLabelsOriginalIndex /*assignedLabelsSelectedIndex*/
+                                        , properties);
 
-                        while(assignedLabelsSelectedIndex.containsKey(relativeIndex)){
-                            relativeIndex = rnd.nextInt(unlabeledTrainingSetIndices.size());
+                                int[] batchInfoToWrite = new int[3];
+                                batchInfoToWrite[0]=exp_id;
+                                batchInfoToWrite[1]=i;
+                                batchInfoToWrite[2]=batchIndex;
+                                writeBatchMetaDataInGroup.put(batchAttributeCurrentIterationList, batchInfoToWrite);
+
+                                batchIndex++;
+                            }
                         }
-                        Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
-                        //add instance pos to batch list
-                        instancesBatchOrginalPos.add(instancePos);
-                        instancesBatchSelectedPos.add(relativeIndex);
-
-                        //calculate instance class
-
-                        int assignedClass;
-                        double scoreClass0 = evaluationResultsPerSetAndInteration.get(partitionIndex).getLatestEvaluationInfo().getScoreDistributions().get(instancePos)[0];
-                        double scoreClass1 = evaluationResultsPerSetAndInteration.get(partitionIndex).getLatestEvaluationInfo().getScoreDistributions().get(instancePos)[1];
-                        if (scoreClass0 > scoreClass1){
-                            assignedClass = 0;
-                            class0counter++;
-                        }
-                        else{
-                            assignedClass = 1;
-                            class1counter++;
-                        }
-                        assignedLabelsOriginalIndex.put(instancePos, assignedClass);
-                        assignedLabelsSelectedIndex.put(relativeIndex, assignedClass);
-                        //get instance meta features
-
-                        TreeMap<Integer,AttributeInfo> instanceAttributeCurrentIteration = instanceAttributes.getInstanceAssignmentMetaFeatures(
-                                unlabeledToMetaFeatures,dataset,
-                                i, evaluationResultsPerSetAndInterationTree,
-                                unifiedDatasetEvaulationResults, targetClassIndex,
-                                instancePos, assignedClass, properties);
-                        instanceAttributeCurrentIterationList.add(instanceAttributeCurrentIteration);
-                        int[] instanceInfoToWrite = new int[5];
-                        instanceInfoToWrite[0]=exp_id;
-                        instanceInfoToWrite[1]=iteration;
-                        instanceInfoToWrite[2]=i;
-                        instanceInfoToWrite[3]=instancePos;
-                        instanceInfoToWrite[4]=batchIndex;
-                        writeInstanceMetaDataInGroupTemp.put(instanceAttributeCurrentIteration, instanceInfoToWrite);
-                        //writeResultsToInstanceMetaFeatures(instanceAttributeCurrentIteration, exp_id, iteration, i, instancePos, batchIndex, properties, dataset);
                     }
                 }
-                if (class0counter > Integer.parseInt(properties.getProperty("minNumberOfInstancesPerClassInAbatch"))
-                        && class1counter > Integer.parseInt(properties.getProperty("minNumberOfInstancesPerClassInAbatch"))){
-                    writeInstanceMetaDataInGroup.putAll(writeInstanceMetaDataInGroupTemp);
-                    batchesInstancesList.add(instancesBatchOrginalPos);
-                    TreeMap<Integer,AttributeInfo> batchAttributeCurrentIterationList = instancesBatchAttributes.getInstancesBatchAssignmentMetaFeatures(
-                            unlabeledToMetaFeatures,labeledToMetaFeatures,
-                            i, evaluationResultsPerSetAndInterationTree,
-                            unifiedDatasetEvaulationResults, targetClassIndex/*dataset.getTargetColumnIndex()*/,
-                            instancesBatchSelectedPos, assignedLabelsOriginalIndex/*assignedLabelsSelectedIndex*/
-                            , properties);
+                //end smart selection
+            }
+            //pick random 1000 batches of 8 instances and get meta features
+            else{
+                int numOfBatches = (int) Math.min(Integer.parseInt(properties.getProperty("numOfBatchedPerIteration")),Math.round(0.3*unlabeledTrainingSetIndices.size()));
+                for (int batchIndex = 0; batchIndex < numOfBatches; batchIndex++) {
+                    ArrayList<Integer> instancesBatchOrginalPos = new ArrayList<>();
+                    ArrayList<Integer> instancesBatchSelectedPos = new ArrayList<>();
 
-                    int[] batchInfoToWrite = new int[3];
-                    batchInfoToWrite[0]=exp_id;
-                    batchInfoToWrite[1]=i;
-                    batchInfoToWrite[2]=batchIndex;
-                    writeBatchMetaDataInGroup.put(batchAttributeCurrentIterationList, batchInfoToWrite);
-                    //writeResultsToBatchesMetaFeatures(batchAttributeCurrentIterationList, exp_id, i, batchIndex, properties, dataset);
+                    HashMap<Integer, Integer> assignedLabelsOriginalIndex = new HashMap<>();
+                    HashMap<Integer, Integer> assignedLabelsSelectedIndex = new HashMap<>();
+                    HashMap<TreeMap<Integer,AttributeInfo>, int[]> writeInstanceMetaDataInGroupTemp = new HashMap<>();
+                    int class0counter = 0;
+                    int class1counter = 0;
+                    for (int partitionIndex : evaluationResultsPerSetAndInteration.keySet()){
+                        //we need 8 distinct instances
+                        for (int sampleIndex = 0; sampleIndex < Integer.parseInt(properties.getProperty("instancesPerBatch"))/2; sampleIndex++) {
+                            int relativeIndex = rnd.nextInt(unlabeledTrainingSetIndices.size());
 
-                    //run the classifier with this batch: on cloned dataset and re-create the run-experiment method (Batches_Score)
-                    writeSampleBatchScoreInGroup.putAll(
-                            getBatchAucBeforeAndAfter(exp_id, iteration, true, i
-                                    , batchIndex, dataset, dataset.getTestFolds().get(0)
-                                    , dataset.getTrainingFolds().get(0)
-                                    , datasetPartitions,assignedLabelsOriginalIndex, labeledTrainingSetIndices, properties));
+                            while(assignedLabelsSelectedIndex.containsKey(relativeIndex)){
+                                relativeIndex = rnd.nextInt(unlabeledTrainingSetIndices.size());
+                            }
+                            Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
+                            //add instance pos to batch list
+                            instancesBatchOrginalPos.add(instancePos);
+                            instancesBatchSelectedPos.add(relativeIndex);
+
+                            //calculate instance class
+
+                            int assignedClass;
+                            double scoreClass0 = evaluationResultsPerSetAndInteration.get(partitionIndex).getLatestEvaluationInfo().getScoreDistributions().get(instancePos)[0];
+                            double scoreClass1 = evaluationResultsPerSetAndInteration.get(partitionIndex).getLatestEvaluationInfo().getScoreDistributions().get(instancePos)[1];
+                            if (scoreClass0 > scoreClass1){
+                                assignedClass = 0;
+                                class0counter++;
+                            }
+                            else{
+                                assignedClass = 1;
+                                class1counter++;
+                            }
+                            assignedLabelsOriginalIndex.put(instancePos, assignedClass);
+                            assignedLabelsSelectedIndex.put(relativeIndex, assignedClass);
+                            //get instance meta features
+
+                            TreeMap<Integer,AttributeInfo> instanceAttributeCurrentIteration = instanceAttributes.getInstanceAssignmentMetaFeatures(
+                                    unlabeledToMetaFeatures,dataset,
+                                    i, evaluationResultsPerSetAndInterationTree,
+                                    unifiedDatasetEvaulationResults, targetClassIndex,
+                                    instancePos, assignedClass, properties);
+                            instanceAttributeCurrentIterationList.add(instanceAttributeCurrentIteration);
+                            int[] instanceInfoToWrite = new int[5];
+                            instanceInfoToWrite[0]=exp_id;
+                            instanceInfoToWrite[1]=iteration;
+                            instanceInfoToWrite[2]=i;
+                            instanceInfoToWrite[3]=instancePos;
+                            instanceInfoToWrite[4]=batchIndex;
+                            writeInstanceMetaDataInGroupTemp.put(instanceAttributeCurrentIteration, instanceInfoToWrite);
+                            //writeResultsToInstanceMetaFeatures(instanceAttributeCurrentIteration, exp_id, iteration, i, instancePos, batchIndex, properties, dataset);
+                        }
+                    }
+                    if (class0counter > Integer.parseInt(properties.getProperty("minNumberOfInstancesPerClassInAbatch"))
+                            && class1counter > Integer.parseInt(properties.getProperty("minNumberOfInstancesPerClassInAbatch"))){
+                        writeInstanceMetaDataInGroup.putAll(writeInstanceMetaDataInGroupTemp);
+                        batchesInstancesList.add(instancesBatchOrginalPos);
+                        TreeMap<Integer,AttributeInfo> batchAttributeCurrentIterationList = instancesBatchAttributes.getInstancesBatchAssignmentMetaFeatures(
+                                unlabeledToMetaFeatures,labeledToMetaFeatures,
+                                i, evaluationResultsPerSetAndInterationTree,
+                                unifiedDatasetEvaulationResults
+                                , targetClassIndex /*dataset.getTargetColumnIndex()*/
+                                , instancesBatchOrginalPos /*instancesBatchSelectedPos*/
+                                , assignedLabelsOriginalIndex /*assignedLabelsSelectedIndex*/
+                                , properties);
+
+                        int[] batchInfoToWrite = new int[3];
+                        batchInfoToWrite[0]=exp_id;
+                        batchInfoToWrite[1]=i;
+                        batchInfoToWrite[2]=batchIndex;
+                        writeBatchMetaDataInGroup.put(batchAttributeCurrentIterationList, batchInfoToWrite);
+                        //writeResultsToBatchesMetaFeatures(batchAttributeCurrentIterationList, exp_id, i, batchIndex, properties, dataset);
+
+                        //run the classifier with this batch: on cloned dataset and re-create the run-experiment method (Batches_Score)
+                        writeSampleBatchScoreInGroup.putAll(
+                                getBatchAucBeforeAndAfter(exp_id, iteration, true, i
+                                        , batchIndex, dataset, dataset.getTestFolds().get(0)
+                                        , dataset.getTrainingFolds().get(0)
+                                        , datasetPartitions,assignedLabelsOriginalIndex, labeledTrainingSetIndices, properties));
                             /*
                             runClassifierOnSampledBatch(exp_id, iteration, true, i
                                     , batchIndex, dataset, dataset.getTestFolds().get(0)
                                     , dataset.getTrainingFolds().get(0)
                                     , datasetPartitions,assignedLabelsOriginalIndex, labeledTrainingSetIndices, properties));
                             */
-                    //calculate td-score-distribution
+                        //calculate td-score-distribution
+                    }
+                    writeInstanceMetaDataInGroupTemp.clear();
                 }
-                writeInstanceMetaDataInGroupTemp.clear();
             }
-
-
 
             //step 2 - get the indices of the items we want to label (separately for each class)
             HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = new HashMap<>();
@@ -962,6 +1040,129 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
         att_id++;
         conn.close();
+    }
+
+    //all candidates for batches - for all partition and class
+    private ArrayList<ArrayList<ArrayList<Integer>>> getTopCandidates(
+            HashMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInteration
+            , List<Integer> unlabeledTrainingSetIndices) {
+        ArrayList<ArrayList<ArrayList<Integer>>> res = new ArrayList<>();
+        HashSet<Integer> uniqueInstances = new HashSet<>();
+        for (int partitionIndex : evaluationResultsPerSetAndInteration.keySet()){
+            for (int class_num=0; class_num<=1; class_num++){
+                ArrayList<ArrayList<Integer>> result = new ArrayList<>();
+                //get all candidates
+                ArrayList<Integer> topInstancesCandidates = new ArrayList<>();
+                TreeMap<Double, List<Integer>> topConfTree = evaluationResultsPerSetAndInteration.get(partitionIndex)
+                        .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num);
+                //limit to top 10% of instances
+                int limitItems = (int)(evaluationResultsPerSetAndInteration.get(partitionIndex)
+                        .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num).size()*0.1);
+                //int limitItems = 8;
+                //flatten top instances
+                for(Map.Entry<Double, List<Integer>> entry : topConfTree.entrySet()) {
+                    if (limitItems < 1){
+                        break;
+                    }
+                    topInstancesCandidates.addAll(entry.getValue());
+                    limitItems--;
+                }
+                Collections.shuffle(topInstancesCandidates);
+                //select top instances - 4 per partition per class
+                int countTop = 3;
+                for(int top_results=0; top_results<=countTop; top_results++){
+                    int relativeIndex = topInstancesCandidates.get(top_results);
+                    if (!uniqueInstances.contains(relativeIndex)){
+                        Integer instancePos = relativeIndex; //Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
+                        ArrayList<Integer> relative__and_real_pos = new ArrayList<>();
+                        relative__and_real_pos.add(relativeIndex);
+                        relative__and_real_pos.add(instancePos);
+                        result.add(relative__and_real_pos);
+                        uniqueInstances.add(relativeIndex);
+                    }
+                    //remove duplicates
+                    else{
+                        countTop++;
+                    }
+                }
+                res.add(result);
+            }
+        }
+        return res;
+    }
+
+    // return structure:
+    // [0]instancesBatchOrginalPos, [1]instancesBatchSelectedPos
+    // [2]assignedLabelsOriginalIndex_0, [3]assignedLabelsOriginalIndex_1
+    // [4]assignedLabelsSelectedIndex_0, [5]assignedLabelsSelectedIndex_1
+    private ArrayList<ArrayList<Integer>> generateBatch(ArrayList<ArrayList<ArrayList<Integer>>> topSelectedInstancesCandidatesArr
+            , HashMap<Character, int[]> pairsDict, char pair_0_0, char pair_0_1, char pair_1_0, char pair_1_1) {
+        int[] pair_0_0_inx = pairsDict.get(pair_0_0);
+        int[] pair_0_1_inx = pairsDict.get(pair_0_1);
+        int[] pair_1_0_inx = pairsDict.get(pair_1_0);
+        int[] pair_1_1_inx = pairsDict.get(pair_1_1);
+
+        ArrayList<Integer> partition_0_class_0_ins_1 = topSelectedInstancesCandidatesArr.get(0).get(pair_0_0_inx[0]);
+        ArrayList<Integer> partition_0_class_0_ins_2 = topSelectedInstancesCandidatesArr.get(0).get(pair_0_0_inx[1]);
+        ArrayList<Integer> partition_0_class_1_ins_1 = topSelectedInstancesCandidatesArr.get(1).get(pair_0_1_inx[0]);
+        ArrayList<Integer> partition_0_class_1_ins_2 = topSelectedInstancesCandidatesArr.get(1).get(pair_0_1_inx[1]);
+        ArrayList<Integer> partition_1_class_0_ins_1 = topSelectedInstancesCandidatesArr.get(2).get(pair_1_0_inx[0]);
+        ArrayList<Integer> partition_1_class_0_ins_2 = topSelectedInstancesCandidatesArr.get(2).get(pair_1_0_inx[1]);
+        ArrayList<Integer> partition_1_class_1_ins_1 = topSelectedInstancesCandidatesArr.get(3).get(pair_1_1_inx[0]);
+        ArrayList<Integer> partition_1_class_1_ins_2 = topSelectedInstancesCandidatesArr.get(3).get(pair_1_1_inx[1]);
+
+        ArrayList<Integer> instancesBatchOrginalPos = new ArrayList<>();
+        instancesBatchOrginalPos.add(partition_0_class_0_ins_1.get(1));
+        instancesBatchOrginalPos.add(partition_0_class_0_ins_2.get(1));
+        instancesBatchOrginalPos.add(partition_0_class_1_ins_1.get(1));
+        instancesBatchOrginalPos.add(partition_0_class_1_ins_2.get(1));
+        instancesBatchOrginalPos.add(partition_1_class_0_ins_1.get(1));
+        instancesBatchOrginalPos.add(partition_1_class_0_ins_2.get(1));
+        instancesBatchOrginalPos.add(partition_1_class_1_ins_1.get(1));
+        instancesBatchOrginalPos.add(partition_1_class_1_ins_2.get(1));
+
+        ArrayList<Integer> instancesBatchSelectedPos = new ArrayList<>();
+        instancesBatchSelectedPos.add(partition_0_class_0_ins_1.get(0));
+        instancesBatchSelectedPos.add(partition_0_class_0_ins_2.get(0));
+        instancesBatchSelectedPos.add(partition_0_class_1_ins_1.get(0));
+        instancesBatchSelectedPos.add(partition_0_class_1_ins_2.get(0));
+        instancesBatchSelectedPos.add(partition_1_class_0_ins_1.get(0));
+        instancesBatchSelectedPos.add(partition_1_class_0_ins_2.get(0));
+        instancesBatchSelectedPos.add(partition_1_class_1_ins_1.get(0));
+        instancesBatchSelectedPos.add(partition_1_class_1_ins_2.get(0));
+
+        ArrayList<Integer> assignedLabelsOriginalIndex_0 = new ArrayList<>();
+        assignedLabelsOriginalIndex_0.add(partition_0_class_0_ins_1.get(1));
+        assignedLabelsOriginalIndex_0.add(partition_0_class_0_ins_2.get(1));
+        assignedLabelsOriginalIndex_0.add(partition_1_class_0_ins_1.get(1));
+        assignedLabelsOriginalIndex_0.add(partition_1_class_0_ins_2.get(1));
+
+        ArrayList<Integer> assignedLabelsOriginalIndex_1 = new ArrayList<>();
+        assignedLabelsOriginalIndex_1.add(partition_0_class_1_ins_1.get(1));
+        assignedLabelsOriginalIndex_1.add(partition_0_class_1_ins_1.get(1));
+        assignedLabelsOriginalIndex_1.add(partition_1_class_1_ins_1.get(1));
+        assignedLabelsOriginalIndex_1.add(partition_1_class_1_ins_2.get(1));
+
+        ArrayList<Integer> assignedLabelsSelectedIndex_0 = new ArrayList<>();
+        assignedLabelsSelectedIndex_0.add(partition_0_class_0_ins_1.get(0));
+        assignedLabelsSelectedIndex_0.add(partition_0_class_0_ins_2.get(0));
+        assignedLabelsSelectedIndex_0.add(partition_1_class_0_ins_1.get(0));
+        assignedLabelsSelectedIndex_0.add(partition_1_class_0_ins_2.get(0));
+
+        ArrayList<Integer> assignedLabelsSelectedIndex_1 = new ArrayList<>();
+        assignedLabelsSelectedIndex_1.add(partition_0_class_1_ins_1.get(0));
+        assignedLabelsSelectedIndex_1.add(partition_0_class_1_ins_1.get(0));
+        assignedLabelsSelectedIndex_1.add(partition_1_class_1_ins_1.get(0));
+        assignedLabelsSelectedIndex_1.add(partition_1_class_1_ins_2.get(0));
+
+        ArrayList<ArrayList<Integer>> res = new ArrayList<>();
+        res.add(instancesBatchOrginalPos);
+        res.add(instancesBatchSelectedPos);
+        res.add(assignedLabelsOriginalIndex_0);
+        res.add(assignedLabelsOriginalIndex_1);
+        res.add(assignedLabelsSelectedIndex_0);
+        res.add(assignedLabelsSelectedIndex_1);
+        return res;
     }
 }
 
