@@ -237,7 +237,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                         , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
                                         , targetClassIndex, i, exp_id, properties);
                                 //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
-                                //ToDo: write td score dist to DB
+                                writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                             }
                         }
                     }
@@ -335,6 +335,12 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                     , datasetPartitions,assignedLabelsOriginalIndex, labeledTrainingSetIndices, properties));
                             */
                         //calculate td-score-distribution
+                        TreeMap<Integer,AttributeInfo> tdScoreDistributionCurrentIteration = tdScoreDist(dataset, feature_sets
+                                , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
+                                , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
+                                , targetClassIndex, i, exp_id, properties);
+                        //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
+                        writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                     }
                     writeInstanceMetaDataInGroupTemp.clear();
                 }
