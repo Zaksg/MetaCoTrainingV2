@@ -127,8 +127,8 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             boolean getDatasetInstancesSucc = false;
             for (int numberOfTries = 0; numberOfTries < 5 && !getDatasetInstancesSucc; numberOfTries++) {
                 try{
-                    labeledToMetaFeatures = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices,exp_id,properties);
-                    unlabeledToMetaFeatures = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices,exp_id,properties);
+                    labeledToMetaFeatures = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices,exp_id, -2, properties);
+                    unlabeledToMetaFeatures = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices,exp_id, -2, properties);
                     getDatasetInstancesSucc = true;
                 }catch (Exception e){
                     Thread.sleep(1000);
@@ -235,7 +235,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                 TreeMap<Integer,AttributeInfo> tdScoreDistributionCurrentIteration = tdScoreDist(dataset, feature_sets
                                         , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
                                         , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
-                                        , targetClassIndex, i, exp_id, properties);
+                                        , targetClassIndex, i, exp_id, batchIndex, properties);
                                 //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
                                 writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                             }
@@ -338,14 +338,14 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                         TreeMap<Integer,AttributeInfo> tdScoreDistributionCurrentIteration = tdScoreDist(dataset, feature_sets
                                 , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
                                 , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
-                                , targetClassIndex, i, exp_id, properties);
+                                , targetClassIndex, i, exp_id, batchIndex, properties);
                         //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
                         writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                     }
                     writeInstanceMetaDataInGroupTemp.clear();
                 }
             }
-
+            System.out.println("Stop insert all batches data");
             //step 2 - get the indices of the items we want to label (separately for each class)
             HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = new HashMap<>();
             HashMap<Integer, List<Integer>> instancesPerPartition = new HashMap<>();
@@ -525,10 +525,10 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
     }
 
-    private Dataset getDataSetByInstancesIndices(Dataset dataset, List<Integer> setIndices, int exp_id, Properties properties)throws Exception{
-
+    private Dataset getDataSetByInstancesIndices(Dataset dataset, List<Integer> setIndices, int exp_id, int batchIndex, Properties properties)throws Exception{
+        Date expDate = new Date();
         Loader loader = new Loader();
-        String tempFilePath = properties.getProperty("tempDirectory") + "_"+exp_id+"_temp.arff";
+        String tempFilePath = properties.getProperty("tempDirectory") + "_"+exp_id+"_"+batchIndex+"_"+expDate.getTime()+"_temp.arff";
         Files.deleteIfExists(Paths.get(tempFilePath));
         FoldsInfo foldsInfo = new FoldsInfo(1,0,0,1,-1,0,0,0,-1,true, FoldsInfo.foldType.Train);
 
@@ -541,12 +541,21 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         Dataset newDataset = loader.readArff(reader, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo);
         reader.close();
 
-        File file = new File(tempFilePath);
+/*        List<ColumnInfo> columns = dataset.getAllColumns(true);
+        List<Fold> folds = dataset.getFolds();
 
+        String name = dataset.getName()+ "_"+exp_id+"_"+batchIndex;
+        Dataset newDataset_2 = new Dataset(columns, folds, dataset.getTargetColumnIndex(), name,
+                setIndices.size(), dataset.getDistinctValueColumns(), 0, Integer.parseInt(properties.getProperty("maxNumberOfDiscreteValuesForInclusionInSet")));
+        dataset.generateSet(FoldsInfo.foldType.Train,setIndices);*/
+
+        //ToDo: delete temp files eventually
+        /*
+        File file = new File(tempFilePath);
         if(!file.delete())
         {
             throw new Exception("Temp file not deleted1");
-        }
+        }*/
         return newDataset;
     }
 
@@ -1066,7 +1075,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             , HashMap<Integer, List<Integer>> feature_sets, HashMap<Integer, Integer> assignedLabelsOriginalIndex
             , List<Integer> labeledTrainingSetIndices, List<Integer> unlabeledTrainingSetIndices
             , TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInterationTree, EvaluationPerIteraion unifiedDatasetEvaulationResults
-            , int targetClassIndex, int i, int exp_id, Properties properties) throws Exception{
+            , int targetClassIndex, int i, int exp_id, int batchIndex, Properties properties) throws Exception{
         TreeMap<Integer,AttributeInfo> scores = new TreeMap<>();
         ScoreDistributionBasedAttributesTdBatch scoreDist = new ScoreDistributionBasedAttributesTdBatch();
 
@@ -1088,10 +1097,12 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         boolean getDatasetInstancesSucc = false;
         for (int numberOfTries = 0; numberOfTries < 5 && !getDatasetInstancesSucc; numberOfTries++) {
             try{
-                labeledToMetaFeatures_td = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices_cloned,exp_id,properties);
-                unlabeledToMetaFeatures_td = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices_cloned,exp_id,properties);
+                labeledToMetaFeatures_td = getDataSetByInstancesIndices(datasetAddedBatch,labeledTrainingSetIndices_cloned,(-1)*exp_id,batchIndex,properties);
+                unlabeledToMetaFeatures_td = getDataSetByInstancesIndices(datasetAddedBatch,unlabeledTrainingSetIndices_cloned,(-1)*exp_id,batchIndex,properties);
                 getDatasetInstancesSucc = true;
-            }catch (Exception e){
+            }
+            //ToDo: thread failed here - need to fix
+            catch (Exception e){
                 Thread.sleep(1000);
                 System.out.println("failed reading file, sleep for 1 second, for try");
                 getDatasetInstancesSucc = false;

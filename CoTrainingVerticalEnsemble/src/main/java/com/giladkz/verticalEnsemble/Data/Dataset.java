@@ -52,7 +52,7 @@ public class Dataset {
      */
     private int randomSeed;
 
-    Dataset(List<ColumnInfo> columns, List<Fold> folds, int targetClassIdx, String name, int numOfInstancesPerColumn, List<ColumnInfo> distinctValColumns, int randomSeed, int maxNumOfValsPerDiscreteAttribtue) throws Exception {
+    public Dataset(List<ColumnInfo> columns, List<Fold> folds, int targetClassIdx, String name, int numOfInstancesPerColumn, List<ColumnInfo> distinctValColumns, int randomSeed, int maxNumOfValsPerDiscreteAttribtue) throws Exception {
         this.randomSeed = randomSeed;
         this.columns = columns;
         this.numOfInstancesPerColumn = numOfInstancesPerColumn;
