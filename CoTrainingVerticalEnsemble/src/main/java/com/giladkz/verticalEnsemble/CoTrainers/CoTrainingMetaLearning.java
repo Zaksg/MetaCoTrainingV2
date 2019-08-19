@@ -7,6 +7,9 @@ import com.giladkz.verticalEnsemble.MetaLearning.InstancesBatchAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributesTdBatch;
 import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
+import weka.core.Attribute;
+import weka.core.Instance;
+import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
 import java.io.BufferedReader;
@@ -18,6 +21,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -526,36 +531,33 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
     }
 
     private Dataset getDataSetByInstancesIndices(Dataset dataset, List<Integer> setIndices, int exp_id, int batchIndex, Properties properties)throws Exception{
+
         Date expDate = new Date();
         Loader loader = new Loader();
-        String tempFilePath = properties.getProperty("tempDirectory") + "_"+exp_id+"_"+batchIndex+"_"+expDate.getTime()+"_temp.arff";
+        FoldsInfo foldsInfo = new FoldsInfo(1,0,0,1
+                ,-1,0,0,0,-1
+                ,true, FoldsInfo.foldType.Train);
+        /*
+        //generate dataset with files - generate the labeled training instances dataset
+        String tempFilePath = properties.getProperty("tempDirectory")+exp_id+"_"+batchIndex+"_"+expDate.getTime()+"_temp.arff";
         Files.deleteIfExists(Paths.get(tempFilePath));
-        FoldsInfo foldsInfo = new FoldsInfo(1,0,0,1,-1,0,0,0,-1,true, FoldsInfo.foldType.Train);
-
-        //generate the labeled training instances dataset
         ArffSaver s= new ArffSaver();
         s.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,setIndices));
         s.setFile(new File(tempFilePath));
         s.writeBatch();
         BufferedReader reader = new BufferedReader(new FileReader(tempFilePath));
-        Dataset newDataset = loader.readArff(reader, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo);
+        Dataset newDataset_file = loader.readArff(reader, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo);
         reader.close();
-
-/*        List<ColumnInfo> columns = dataset.getAllColumns(true);
-        List<Fold> folds = dataset.getFolds();
-
-        String name = dataset.getName()+ "_"+exp_id+"_"+batchIndex;
-        Dataset newDataset_2 = new Dataset(columns, folds, dataset.getTargetColumnIndex(), name,
-                setIndices.size(), dataset.getDistinctValueColumns(), 0, Integer.parseInt(properties.getProperty("maxNumberOfDiscreteValuesForInclusionInSet")));
-        dataset.generateSet(FoldsInfo.foldType.Train,setIndices);*/
-
-        //ToDo: delete temp files eventually
-        /*
+        //need to delete temp files eventually
         File file = new File(tempFilePath);
         if(!file.delete())
         {
             throw new Exception("Temp file not deleted1");
         }*/
+        Instances indicedInstances = dataset.generateSet(FoldsInfo.foldType.Train, setIndices);
+        Dataset newDataset = loader.readArff(indicedInstances, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo
+                , dataset, FoldsInfo.foldType.Train, setIndices);
+
         return newDataset;
     }
 
@@ -603,6 +605,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         }
         conn.close();
     }
+
 
     private void writeResultsToInstanceMetaFeaturesGroup(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeInstanceMetaDataInGroup, Properties properties, Dataset dataset) throws Exception{
         String myDriver = properties.getProperty("JDBC_DRIVER");

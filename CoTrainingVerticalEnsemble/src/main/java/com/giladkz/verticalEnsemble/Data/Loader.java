@@ -18,6 +18,83 @@ import java.util.stream.Collectors;
  */
 public class Loader {
 
+    //ToDo: implement
+    /**
+     * Used to load and process an ARFF file. The Dataset object and created and onstances are assigned to different
+     * folds (proportionally by class)
+     * @param instances
+     * @param randomSeed
+     * @param distinctValIndices
+     * @param dataset
+     *@param train
+     * @param setIndices @return
+     */
+    public Dataset readArff(Instances instances, int randomSeed, List<Integer> distinctValIndices,
+                            int classAttIndex, double trainingSetPercentageOfDataset, FoldsInfo foldsInfo
+            , Dataset originDataset, FoldsInfo.foldType train, List<Integer> setIndices) throws Exception{
+        //ArffLoader.ArffReader arffReader;
+
+        Properties properties = new Properties();
+        InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");
+        properties.load(input);
+
+        try {
+            //arffReader = new ArffLoader.ArffReader(reader);
+            //Instances structure = arffReader.getStructure();
+            //Instances data = arffReader.getData();
+            Instances structure = instances;
+            structure.setClassIndex(-1);
+            structure.clear();
+
+
+            //Begin by iterating over the columns and generating the corresponding objects
+            List<ColumnInfo> columns = processHeader(structure, setIndices.size(),classAttIndex);
+
+            //now we process the data itself and populate the columns
+            Instances data = originDataset.generateSet(train, setIndices);
+            processData(data, columns);
+
+            //Next, we generate the folds
+            //We only need the target attribute column to determine the folds (in case we use stratified sampling)
+            int targetClassColumnIndex = classAttIndex;
+            if (classAttIndex == -1) {
+                targetClassColumnIndex = columns.size()-1;
+            }
+            List<Fold> folds;
+            if (distinctValIndices == null) {
+                if (foldsInfo == null) {
+                    folds = GenerateFolds(columns.get(targetClassColumnIndex), randomSeed, trainingSetPercentageOfDataset);
+                }
+                else {
+                    folds = GenerateFolds(columns.get(targetClassColumnIndex), randomSeed, foldsInfo);
+                }
+            }
+            else {
+                folds = GenerateFoldsWithDistinctValues(columns.get(targetClassColumnIndex), randomSeed, trainingSetPercentageOfDataset,distinctValIndices,columns);
+            }
+
+            List<ColumnInfo> distinctValColumnInfos = new ArrayList<>();
+            if (distinctValIndices != null) {
+                for (int distinctColumnIndex : distinctValIndices) {
+                    distinctValColumnInfos.add(columns.get(distinctColumnIndex));
+                }
+            }
+
+            //Fially, we can create the Dataset object
+            Dataset dataset = new Dataset(columns, folds, targetClassColumnIndex, structure.relationName() + "_" + Integer.toString(randomSeed),
+                    data.numInstances(), distinctValColumnInfos, randomSeed, Integer.parseInt(properties.getProperty("maxNumberOfDiscreteValuesForInclusionInSet")));
+
+
+
+            return dataset;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return  null;
+
+    }
     /**
      * Used to load and process an ARFF file. The Dataset object and created and onstances are assigned to different
      * folds (proportionally by class)
