@@ -1096,6 +1096,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
 
 
+    //ToDo: check why labeledTrainingSetIndices keep growing every itetaion while it shouldn't
     private TreeMap<Integer,AttributeInfo> tdScoreDist(Dataset dataset
             , HashMap<Integer, List<Integer>> feature_sets, HashMap<Integer, Integer> assignedLabelsOriginalIndex
             , List<Integer> labeledTrainingSetIndices, List<Integer> unlabeledTrainingSetIndices
@@ -1125,7 +1126,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                 , labeledTrainingSetIndices,  properties);
 
         //labeled instances in the new dataset
-        List<Integer> labeledTrainingSetIndices_cloned = labeledTrainingSetIndices;
+        List<Integer> labeledTrainingSetIndices_cloned = new ArrayList<>(labeledTrainingSetIndices);
         labeledTrainingSetIndices_cloned.addAll(assignedLabelsOriginalIndex.keySet());
 
         //unlabeled instances in the new dataset
