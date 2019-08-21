@@ -15,6 +15,8 @@ import static com.giladkz.verticalEnsemble.GeneralFunctions.EvaluationAnalysisFu
 public class InstanceAttributes {
     private List<Integer> numOfIterationsBackToAnalyze = Arrays.asList(1,3,5,10);
 
+    //ToDo: change attribute names with the instance number
+    //ToDo: failed insert many attributes. check if the csv helps
     public TreeMap<Integer, AttributeInfo> getInstanceAssignmentMetaFeatures
             (Dataset unlabeledSet, Dataset originalDataset, int currentIterationIndex,
              TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInteration,
@@ -106,18 +108,18 @@ public class InstanceAttributes {
                     instanceScoreByPartitionAndIteration.get(partitionIndex).addValue(prevInstanceScore);
                     //insert previous score
                     AttributeInfo instancePrevScore = new AttributeInfo
-                            ("instancePrev" + numOfIterationsBack + "IterationsScoreClassifier" + partitionIndex, Column.columnType.Numeric, prevInstanceScore, -1);
+                            ("instancePrev_" + numOfIterationsBack + "_IterationsScoreClassifier" + partitionIndex, Column.columnType.Numeric, prevInstanceScore, -1);
                     instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevScore);
 
                     //insert previous score - delta
                     double prevDeltaScore = Math.abs(instanceCurrIterationScore-prevInstanceScore);
                     instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).addValue(prevDeltaScore);
                     AttributeInfo instancePrevDeltaScore = new AttributeInfo
-                            ("instancePrev" + numOfIterationsBack + "IterationsDeltaScoreClassifier" + partitionIndex, Column.columnType.Numeric, prevDeltaScore, -1);
+                            ("instancePrev_" + numOfIterationsBack + "_IterationsDeltaScoreClassifier_" + partitionIndex, Column.columnType.Numeric, prevDeltaScore, -1);
                     instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevDeltaScore);
                 }else{
                     AttributeInfo instancePrevDeltaScore = new AttributeInfo
-                            ("instancePrev" + numOfIterationsBack + "IterationsDeltaScoreClassifier" + partitionIndex, Column.columnType.Numeric, -1.0, -1);
+                            ("instancePrev_" + numOfIterationsBack + "_IterationsDeltaScoreClassifier_" + partitionIndex, Column.columnType.Numeric, -1.0, -1);
                     instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevDeltaScore);
                 }
             }
@@ -125,45 +127,45 @@ public class InstanceAttributes {
                 //stats on the iterations scores
                 //max
                 AttributeInfo instancePrevIterationMax = new AttributeInfo
-                        ("instancePrevIterationMax" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMax(), -1);
+                        ("instancePrevIterationMax_" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMax(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevIterationMax);
                 //min
                 AttributeInfo instancePrevIterationMin = new AttributeInfo
-                        ("instancePrevIterationMin" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMin(), -1);
+                        ("instancePrevIterationMin_" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMin(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevIterationMin);
                 //mean
                 AttributeInfo instancePrevIterationMean = new AttributeInfo
-                        ("instancePrevIterationMean" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMean(), -1);
+                        ("instancePrevIterationMean_" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getMean(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevIterationMean);
                 //std
                 AttributeInfo instancePrevIterationStd = new AttributeInfo
-                        ("instancePrevIterationStd" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getStandardDeviation(), -1);
+                        ("instancePrevIterationStd_" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getStandardDeviation(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevIterationStd);
                 //p-50
                 AttributeInfo instancePrevIterationMedian = new AttributeInfo
-                        ("instancePrevIterationMedian" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getPercentile(50), -1);
+                        ("instancePrevIterationMedian_" + partitionIndex, Column.columnType.Numeric, instanceScoreByPartitionAndIteration.get(partitionIndex).getPercentile(50), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instancePrevIterationMedian);
 
                 //stats on the iterations delta scores
                 //max
                 AttributeInfo instanceDeltaPrevIterationMax = new AttributeInfo
-                        ("instanceDeltaPrevIterationMax" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMax(), -1);
+                        ("instanceDeltaPrevIterationMax_" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMax(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceDeltaPrevIterationMax);
                 //min
                 AttributeInfo instanceDeltaPrevIterationMin = new AttributeInfo
-                        ("instanceDeltaPrevIterationMin" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMin(), -1);
+                        ("instanceDeltaPrevIterationMin_" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMin(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceDeltaPrevIterationMin);
                 //mean
                 AttributeInfo instanceDeltaPrevIterationMean = new AttributeInfo
-                        ("instanceDeltaPrevIterationMean" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMean(), -1);
+                        ("instanceDeltaPrevIterationMean_" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getMean(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceDeltaPrevIterationMean);
                 //std
                 AttributeInfo instanceDeltaPrevIterationStd = new AttributeInfo
-                        ("instanceDeltaPrevIterationStd" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getStandardDeviation(), -1);
+                        ("instanceDeltaPrevIterationStd_" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getStandardDeviation(), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceDeltaPrevIterationStd);
                 //p-50
                 AttributeInfo instanceDeltaPrevIterationMedian = new AttributeInfo
-                        ("instanceDeltaPrevIterationMedian" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getPercentile(50), -1);
+                        ("instanceDeltaPrevIterationMedian_" + partitionIndex, Column.columnType.Numeric, instanceDeltaScoreByPartitionAndIteration.get(partitionIndex).getPercentile(50), -1);
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceDeltaPrevIterationMedian);
 //            }
         }
@@ -208,7 +210,7 @@ public class InstanceAttributes {
                     double instancePercentile = percentilePerClassPerInstancePerPartitionPrevIteration[partitionIndex];
                     //insert percentile per class
                     AttributeInfo percentilePrevIteratinByClassifier = new AttributeInfo
-                            ("instancePrevIteration" + numOfIterationsBack + "PercentileByClassifier" + partitionIndex, Column.columnType.Numeric, instancePercentile, -1);
+                            ("instancePrevIteration_" + numOfIterationsBack + "_PercentileByClassifier_" + partitionIndex, Column.columnType.Numeric, instancePercentile, -1);
                     instanceAttributesToReturn.put(instanceAttributesToReturn.size(), percentilePrevIteratinByClassifier);
                     if (partitionIndex % 2 == 1) {
                         instancePrevIterationDeltaPercentile += instancePercentile;
@@ -218,14 +220,14 @@ public class InstanceAttributes {
                 }
                 //insert percentile delta
                 double instanceClassifiersDeltaPercentilePrevIteration = Math.abs(instancePrevIterationDeltaPercentile);
-                AttributeInfo instanceClassifiersDeltaPercentileAttPrevIteration = new AttributeInfo("instanceClassifiersDeltaScore" + numOfIterationsBack, Column.columnType.Numeric, instanceClassifiersDeltaPercentilePrevIteration, originalDataset.getNumOfClasses());
+                AttributeInfo instanceClassifiersDeltaPercentileAttPrevIteration = new AttributeInfo("instanceClassifiersDeltaScore_" + numOfIterationsBack, Column.columnType.Numeric, instanceClassifiersDeltaPercentilePrevIteration, originalDataset.getNumOfClasses());
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceClassifiersDeltaPercentileAttPrevIteration);
             }
             //no iteration back - insert -1 in the value
             else {
                 for (int partitionIndex : prevIterationScoreDistPerPartition.keySet()) {
                     AttributeInfo percentilePrevIteratinByClassifierNoIterationBack = new AttributeInfo
-                            ("percentilePrevIteratinByClassifierNoIterationBack" + partitionIndex, Column.columnType.Numeric, -1.0, -1);
+                            ("percentilePrevIteratinByClassifierNoIterationBack_" + partitionIndex, Column.columnType.Numeric, -1.0, -1);
                     instanceAttributesToReturn.put(instanceAttributesToReturn.size(), percentilePrevIteratinByClassifierNoIterationBack);
                 }
                 AttributeInfo instanceClassifiersDeltaPercentileAttNoIterationBack = new AttributeInfo("instanceClassifiersDeltaPercentileAttPrevIterationNoIterationBack", Column.columnType.Numeric, -1.0, originalDataset.getNumOfClasses());
@@ -253,7 +255,7 @@ public class InstanceAttributes {
                 //score
                 double scorePerIterationBack = unifiedDatasetEvaulationResults.getIterationEvaluationInfo(currentIterationIndex - numOfIterationsBack).getScoreDistributions().get(originalIndex)[targetClassIndex];
                 scoresPerIterationUnifiedDataset.addValue(scorePerIterationBack);
-                AttributeInfo instanceScoreUnifiedDatasetPerIterationAtt = new AttributeInfo("instanceScoreUnifiedDatasetIteration" + numOfIterationsBack, Column.columnType.Numeric, scorePerIterationBack, originalDataset.getNumOfClasses());
+                AttributeInfo instanceScoreUnifiedDatasetPerIterationAtt = new AttributeInfo("instanceScoreUnifiedDatasetIteration_" + numOfIterationsBack, Column.columnType.Numeric, scorePerIterationBack, originalDataset.getNumOfClasses());
                 instanceAttributesToReturn.put(instanceAttributesToReturn.size(), instanceScoreUnifiedDatasetPerIterationAtt);
 
                 //percentile
@@ -459,30 +461,30 @@ public class InstanceAttributes {
             }
             //else continue;
         }
-        instanceAttributesToReturn.putAll(evalDecsStats("instancePercentileColumn_" + originalIndex + "_" + currentIterationIndex, numericAllPercentile, instanceAttributesToReturn.size()));
+        instanceAttributesToReturn.putAll(evalDecsStats("instancePercentileColumn_" /*+ originalIndex + "_" + currentIterationIndex*/, numericAllPercentile, instanceAttributesToReturn.size()));
         double[] emptyValues ={-1.0, -1.0, -1.0, -1.0, -1.0};
         if (numericRegCount > 0){
-            instanceAttributesToReturn.putAll(evalDecsStats("assignedLabelPercentile_" + originalIndex + "_" + currentIterationIndex, numericAssignedPercentile, instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("assignedLabelPercentile_" /*+ originalIndex + "_" + currentIterationIndex*/, numericAssignedPercentile, instanceAttributesToReturn.size()));
         }
         else{
-            instanceAttributesToReturn.putAll(evalDecsStats("assignedLabelPercentile_" + originalIndex + "_" + currentIterationIndex, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("assignedLabelPercentile_" /*+ originalIndex + "_" + currentIterationIndex*/, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
         }
 
         if (numericHigherCount > 0){
-            instanceAttributesToReturn.putAll(evalDecsStats("higherValuePercentile_" + originalIndex + "_" + currentIterationIndex, numericHigherConfPercentile, instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("higherValuePercentile_" /*+ originalIndex + "_" + currentIterationIndex*/, numericHigherConfPercentile, instanceAttributesToReturn.size()));
         }
         else{
 
-            instanceAttributesToReturn.putAll(evalDecsStats("higherValuePercentile_" + originalIndex + "_" + currentIterationIndex, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("higherValuePercentile_" /*+ originalIndex + "_" + currentIterationIndex*/, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
         }
-        instanceAttributesToReturn.putAll(evalDecsStats("instanceValueProb_" + originalIndex + "_" + currentIterationIndex, discreteAllMode, instanceAttributesToReturn.size()));
-        instanceAttributesToReturn.putAll(evalDecsStats("instanceValueLabeledProb_" + originalIndex + "_" + currentIterationIndex, discreteAssignedMode, instanceAttributesToReturn.size()));
+        instanceAttributesToReturn.putAll(evalDecsStats("instanceValueProb_" /*+ originalIndex + "_" + currentIterationIndex*/, discreteAllMode, instanceAttributesToReturn.size()));
+        instanceAttributesToReturn.putAll(evalDecsStats("instanceValueLabeledProb_" /*+ originalIndex + "_" + currentIterationIndex*/, discreteAssignedMode, instanceAttributesToReturn.size()));
         if (discreteHigherCount > 0){
-            instanceAttributesToReturn.putAll(evalDecsStats("instanceValueHigherProb_" + originalIndex + "_" + currentIterationIndex, discreteHigherMode, instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("instanceValueHigherProb_" /*+ originalIndex + "_" + currentIterationIndex*/, discreteHigherMode, instanceAttributesToReturn.size()));
         }
         else{
 //            double[] emptyValues ={-1.0, -1.0, -1.0, -1.0, -1.0};
-            instanceAttributesToReturn.putAll(evalDecsStats("instanceValueHigherProb_" + originalIndex + "_" + currentIterationIndex, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
+            instanceAttributesToReturn.putAll(evalDecsStats("instanceValueHigherProb_" /*+ originalIndex + "_" + currentIterationIndex*/, new DescriptiveStatistics(emptyValues), instanceAttributesToReturn.size()));
         }
 
         //fix NaN: convert to -1.0

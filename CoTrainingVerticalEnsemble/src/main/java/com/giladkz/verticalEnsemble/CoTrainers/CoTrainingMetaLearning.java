@@ -10,10 +10,7 @@ import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -42,6 +39,10 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         properties = new Properties();
         InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");
         properties.load(input);
+
+        //Data writing system
+        //can be "sql" or "csv"
+        String writeType = "csv";
 
         /* We start by partitioning the dataset based on the sets of features this function receives as a parameter */
         HashMap<Integer,Dataset> datasetPartitions = new HashMap<>();
@@ -148,7 +149,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                     , unifiedDatasetEvaulationResults,
                     targetClassIndex/*dataset.getTargetColumnIndex()*/
                     ,"reg", properties);
-            writeResultsToScoreDistribution(scoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
+            writeResultsToScoreDistribution(scoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset, writeType);
 
             ArrayList<ArrayList<Integer>> batchesInstancesList = new ArrayList<>();
             List<TreeMap<Integer,AttributeInfo>> instanceAttributeCurrentIterationList = new ArrayList<>();
@@ -259,10 +260,10 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                 writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                                 long td_finish = System.currentTimeMillis();
                                 //System.out.println("Td for batch: " + batchIndex+" in " + (td_finish - td_start) + " ms");
-                                System.out.println("Total batch time: " + batchIndex+": total: " + (td_finish - get_batch_start) +
+/*                                System.out.println("Total batch time: " + batchIndex+": total: " + (td_finish - get_batch_start) +
                                         " ms. instances meta features:" +(instances_finish - instances_start) +
                                         " ms. batch meta features: " + (batch_finish - batch_start) + " ms. auc: "+ (auc_finish - auc_start)
-                                        + " ms. td: "+ (td_finish - td_start) + " ms.");
+                                        + " ms. td: "+ (td_finish - td_start) + " ms.");*/
                             }
                         }
                     }
@@ -370,7 +371,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                     writeInstanceMetaDataInGroupTemp.clear();
                 }
             }
-            System.out.println("Stop insert all batches data");
+            System.out.println("finish insert all batches data");
             //step 2 - get the indices of the items we want to label (separately for each class)
             HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = new HashMap<>();
             HashMap<Integer, List<Integer>> instancesPerPartition = new HashMap<>();
@@ -424,10 +425,10 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
             //write meta-data in groups of 20% of iteration
             if (i == (writeCounterBin*(num_of_iterations/5))-1){
-                writeResultsToInstanceMetaFeaturesGroup(writeInstanceMetaDataInGroup, properties, dataset);
-                writeResultsToBatchMetaFeaturesGroup(writeBatchMetaDataInGroup, properties, dataset);
-                writeToInsertInstancesToBatchGroup(writeInsertBatchInGroup, properties);
-                writeToBatchScoreTblGroup(writeSampleBatchScoreInGroup, properties);
+                writeResultsToInstanceMetaFeaturesGroup(writeInstanceMetaDataInGroup, properties, dataset, exp_id, writeCounterBin, writeType);
+                writeResultsToBatchMetaFeaturesGroup(writeBatchMetaDataInGroup, properties, dataset, exp_id, writeCounterBin, writeType);
+                writeToInsertInstancesToBatchGroup(writeInsertBatchInGroup, properties, exp_id, writeCounterBin, writeType);
+                writeToBatchScoreTblGroup(writeSampleBatchScoreInGroup, properties, exp_id, writeCounterBin, writeType);
                 writeInstanceMetaDataInGroup.clear();
                 writeBatchMetaDataInGroup.clear();
                 writeInsertBatchInGroup.clear();
@@ -581,40 +582,81 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         return newDataset;
     }
 
-    private void writeToBatchScoreTblGroup(HashMap<int[], Double> writeSampleBatchScoreInGroup, Properties properties) throws Exception{
-        String myDriver = properties.getProperty("JDBC_DRIVER");
-        String myUrl = properties.getProperty("DatabaseUrl");
-        Class.forName(myDriver);
-        Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
-        for (Map.Entry<int[], Double> outerEntry : writeSampleBatchScoreInGroup.entrySet()){
-            String sql = "insert into tbl_Batchs_Score(att_id, batch_id, exp_id, exp_iteration, score_type, score_value, test_set_size) values (?, ?, ?, ?, ?, ?, ?)";
-            Double auc = outerEntry.getValue();
-            int[] info = outerEntry.getKey();
-            int att_id=0;
-            //insert to table
-            String score_type;
-            if (info[4] < 0){
-                score_type = "auc_before_add_batch";
+    private void writeToBatchScoreTblGroup(HashMap<int[], Double> writeSampleBatchScoreInGroup, Properties properties, int exp_id, int writeNum, String writeType) throws Exception{
+        //sql
+        if (writeType=="sql") {
+            String myDriver = properties.getProperty("JDBC_DRIVER");
+            String myUrl = properties.getProperty("DatabaseUrl");
+            Class.forName(myDriver);
+            Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
+            for (Map.Entry<int[], Double> outerEntry : writeSampleBatchScoreInGroup.entrySet()) {
+                String sql = "insert into tbl_Batchs_Score(att_id, batch_id, exp_id, exp_iteration, score_type, score_value, test_set_size) values (?, ?, ?, ?, ?, ?, ?)";
+                Double auc = outerEntry.getValue();
+                int[] info = outerEntry.getKey();
+                int att_id = 0;
+                //insert to table
+                String score_type;
+                if (info[4] < 0) {
+                    score_type = "auc_before_add_batch";
+                } else {
+                    score_type = "auc_after_add_batch";
+                }
+                PreparedStatement preparedStmt = conn.prepareStatement(sql);
+                preparedStmt.setInt(1, att_id);
+                preparedStmt.setInt(2, info[0]);
+                preparedStmt.setInt(3, info[1]);
+                preparedStmt.setInt(4, info[2]);
+                preparedStmt.setString(5, score_type);
+                preparedStmt.setDouble(6, auc);
+                preparedStmt.setDouble(7, info[3]);
+
+                preparedStmt.execute();
+                preparedStmt.close();
+
+                att_id++;
+
             }
-            else{
-                score_type = "auc_after_add_batch";
-            }
-            PreparedStatement preparedStmt = conn.prepareStatement(sql);
-            preparedStmt.setInt (1, att_id);
-            preparedStmt.setInt (2, info[0]);
-            preparedStmt.setInt (3, info[1]);
-            preparedStmt.setInt (4, info[2]);
-            preparedStmt.setString (5, score_type);
-            preparedStmt.setDouble (6, auc);
-            preparedStmt.setDouble (7, info[3]);
-
-            preparedStmt.execute();
-            preparedStmt.close();
-
-            att_id++;
-
+            conn.close();
         }
-        conn.close();
+        //csv
+        else{
+            String folderPath = properties.getProperty("modelFiles");
+            String filename = "tbl_Score_Distribution_Meta_Data_exp_"+exp_id+"_writeNum_"+writeNum+".csv";
+            FileWriter fileWriter = new FileWriter(folderPath+filename);
+            String fileHeader = "att_id,batch_id,exp_id,exp_iteration,score_type,score_value,test_set_size\n";
+            fileWriter.append(fileHeader);
+            int att_id = 0;
+            for (Map.Entry<int[], Double> outerEntry : writeSampleBatchScoreInGroup.entrySet()) {
+                Double auc = outerEntry.getValue();
+                int[] info = outerEntry.getKey();
+                //int att_id = 0;
+                //insert to table
+                String score_type;
+                if (info[4] < 0) {
+                    score_type = "auc_before_add_batch";
+                } else {
+                    score_type = "auc_after_add_batch";
+                }
+                fileWriter.append(String.valueOf(att_id));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(info[0]));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(info[1]));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(info[2]));
+                fileWriter.append(",");
+                fileWriter.append(score_type);
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(auc));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(info[3]));
+                fileWriter.append("\n");
+                att_id++;
+            }
+            fileWriter.flush();
+            fileWriter.close();
+            System.out.println("Wrote this file: " + folderPath+filename);
+        }
     }
 
     private void writeToBatchScoreTbl(int batch_id, int exp_id, int exp_iteration,
@@ -644,92 +686,190 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         conn.close();
     }
 
-    private void writeResultsToScoreDistribution(TreeMap<Integer,AttributeInfo> scroeDistData, int expID, int expIteration,
-                                                 int innerIteration, Properties properties, Dataset dataset) throws Exception {
+    private void writeResultsToScoreDistribution(TreeMap<Integer, AttributeInfo> scroeDistData, int expID, int expIteration,
+                                                 int innerIteration, Properties properties, Dataset dataset, String writeType) throws Exception {
 
-        String myDriver = properties.getProperty("JDBC_DRIVER");
-        String myUrl = properties.getProperty("DatabaseUrl");
-        Class.forName(myDriver);
+        //sql
+        if (writeType=="sql") {
+            String myDriver = properties.getProperty("JDBC_DRIVER");
+            String myUrl = properties.getProperty("DatabaseUrl");
+            Class.forName(myDriver);
 
-        String sql = "insert into tbl_Score_Distribution_Meta_Data (att_id, exp_id, exp_iteration, inner_iteration_id, meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?)";
+            String sql = "insert into tbl_Score_Distribution_Meta_Data (att_id, exp_id, exp_iteration, inner_iteration_id, meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?)";
 
-        Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
+            Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
 
-        int att_id = 0;
-        for(Map.Entry<Integer,AttributeInfo> entry : scroeDistData.entrySet()){
-            String metaFeatureName = entry.getValue().getAttributeName();
-            Object metaFeatureValueRaw = entry.getValue().getValue();
+            int att_id = 0;
+            for (Map.Entry<Integer, AttributeInfo> entry : scroeDistData.entrySet()) {
+                String metaFeatureName = entry.getValue().getAttributeName();
+                Object metaFeatureValueRaw = entry.getValue().getValue();
 
-            //cast results to double
-            Double metaFeatureValue = null;
-            if (metaFeatureValueRaw instanceof Double) {
-                metaFeatureValue = (Double) metaFeatureValueRaw;
+                //cast results to double
+                Double metaFeatureValue = null;
+                if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = (Double) metaFeatureValueRaw;
+                } else if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = ((Double) metaFeatureValueRaw).doubleValue();
+                }
+                if (Double.isNaN(metaFeatureValue)) {
+                    metaFeatureValue = -1.0;
+                }
+
+                //insert to table
+                PreparedStatement preparedStmt = conn.prepareStatement(sql);
+                preparedStmt.setInt(1, att_id);
+                preparedStmt.setInt(2, expID);
+                preparedStmt.setInt(3, expIteration);
+                preparedStmt.setInt(4, innerIteration);
+                preparedStmt.setString(5, metaFeatureName);
+                preparedStmt.setDouble(6, metaFeatureValue);
+
+                preparedStmt.execute();
+                preparedStmt.close();
+
+                att_id++;
             }
-            else if(metaFeatureValueRaw instanceof Double){
-                metaFeatureValue = ((Double) metaFeatureValueRaw).doubleValue();
-            }
-            if (Double.isNaN(metaFeatureValue)){
-                metaFeatureValue = -1.0;
-            }
-
-            //insert to table
-            PreparedStatement preparedStmt = conn.prepareStatement(sql);
-            preparedStmt.setInt (1, att_id);
-            preparedStmt.setInt (2, expID);
-            preparedStmt.setInt (3, expIteration);
-            preparedStmt.setInt(4, innerIteration);
-            preparedStmt.setString   (5, metaFeatureName);
-            preparedStmt.setDouble   (6, metaFeatureValue);
-
-            preparedStmt.execute();
-            preparedStmt.close();
-
-            att_id++;
+            conn.close();
         }
-        conn.close();
+        //csv
+        else{
+            String folderPath = properties.getProperty("modelFiles");
+            String filename = "tbl_Score_Distribution_Meta_Data_exp_"+expIteration+"_starting_iteration_"+innerIteration+expID+".csv";
+            FileWriter fileWriter = new FileWriter(folderPath+filename);
+            String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,meta_feature_name,meta_feature_value\n";
+            fileWriter.append(fileHeader);
+            int att_id = 0;
+            for (Map.Entry<Integer, AttributeInfo> entry : scroeDistData.entrySet()) {
+                String metaFeatureName = entry.getValue().getAttributeName();
+                Object metaFeatureValueRaw = entry.getValue().getValue();
+
+                //cast results to double
+                Double metaFeatureValue = null;
+                if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = (Double) metaFeatureValueRaw;
+                } else if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = ((Double) metaFeatureValueRaw).doubleValue();
+                }
+                if (Double.isNaN(metaFeatureValue)) {
+                    metaFeatureValue = -1.0;
+                }
+                fileWriter.append(String.valueOf(att_id));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(expID));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(expIteration));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(innerIteration));
+                fileWriter.append(",");
+                fileWriter.append(metaFeatureName);
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(metaFeatureValue));
+                fileWriter.append("\n");
+                att_id++;
+            }
+            fileWriter.flush();
+            fileWriter.close();
+            System.out.println("Wrote this file: " + folderPath+filename);
+            //return folderPath+filename;
+        }
     }
 
 
-    private void writeResultsToInstanceMetaFeaturesGroup(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeInstanceMetaDataInGroup, Properties properties, Dataset dataset) throws Exception{
-        String myDriver = properties.getProperty("JDBC_DRIVER");
-        String myUrl = properties.getProperty("DatabaseUrl");
-        Class.forName(myDriver);
-        Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
+    private void writeResultsToInstanceMetaFeaturesGroup(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeInstanceMetaDataInGroup, Properties properties, Dataset dataset, int expId, int writeNum, String writeType) throws Exception{
+        //sql
+        if (writeType=="sql") {
+            String myDriver = properties.getProperty("JDBC_DRIVER");
+            String myUrl = properties.getProperty("DatabaseUrl");
+            Class.forName(myDriver);
+            Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
 
-        for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeInstanceMetaDataInGroup.entrySet()){
-            String sql = "insert into tbl_Instances_Meta_Data (att_id, exp_id, exp_iteration, inner_iteration_id, instance_pos,batch_id, meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?, ?, ?)";
-            TreeMap<Integer,AttributeInfo> instanceMetaData= outerEntry.getKey();
-            int[] instanceInfo = outerEntry.getValue();
+            for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeInstanceMetaDataInGroup.entrySet()) {
+                String sql = "insert into tbl_Instances_Meta_Data (att_id, exp_id, exp_iteration, inner_iteration_id, instance_pos,batch_id, meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?, ?, ?)";
+                TreeMap<Integer, AttributeInfo> instanceMetaData = outerEntry.getKey();
+                int[] instanceInfo = outerEntry.getValue();
 
-            int att_id = 0;
-            for(Map.Entry<Integer,AttributeInfo> entry : instanceMetaData.entrySet()){
-                String metaFeatureName = entry.getValue().getAttributeName();
-                String metaFeatureValue = entry.getValue().getValue().toString();
+                int att_id = 0;
+                for (Map.Entry<Integer, AttributeInfo> entry : instanceMetaData.entrySet()) {
+                    String metaFeatureName = entry.getValue().getAttributeName();
+                    String metaFeatureValue = entry.getValue().getValue().toString();
 
-                try{
-                    //insert to table
-                    PreparedStatement preparedStmt = conn.prepareStatement(sql);
-                    preparedStmt.setInt (1, att_id);
-                    preparedStmt.setInt (2, instanceInfo[0]);
-                    preparedStmt.setInt (3, instanceInfo[1]);
-                    preparedStmt.setInt(4, instanceInfo[2]);
-                    preparedStmt.setInt(5, instanceInfo[3]);
-                    preparedStmt.setInt (6, instanceInfo[4]);
-                    preparedStmt.setString   (7, metaFeatureName);
-                    preparedStmt.setString   (8, metaFeatureValue);
+                    try {
+                        //insert to table
+                        PreparedStatement preparedStmt = conn.prepareStatement(sql);
+                        preparedStmt.setInt(1, att_id);
+                        preparedStmt.setInt(2, instanceInfo[0]);
+                        preparedStmt.setInt(3, instanceInfo[1]);
+                        preparedStmt.setInt(4, instanceInfo[2]);
+                        preparedStmt.setInt(5, instanceInfo[3]);
+                        preparedStmt.setInt(6, instanceInfo[4]);
+                        preparedStmt.setString(7, metaFeatureName);
+                        preparedStmt.setString(8, metaFeatureValue);
 
-                    preparedStmt.execute();
-                    preparedStmt.close();
+                        preparedStmt.execute();
+                        preparedStmt.close();
 
-                    att_id++;
-                }catch (Exception e){
-                    e.printStackTrace();
-                    System.out.println("failed insert instance for: (" + att_id+", "+instanceInfo[0]+", "+instanceInfo[1]+", "+instanceInfo[2]
-                    + ", "+ instanceInfo[3]+", "+ instanceInfo[4]+", "+ metaFeatureName + ", "+ metaFeatureValue + ")");
+                        att_id++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("failed insert instance for: (" + att_id + ", " + instanceInfo[0] + ", " + instanceInfo[1] + ", " + instanceInfo[2]
+                                + ", " + instanceInfo[3] + ", " + instanceInfo[4] + ", " + metaFeatureName + ", " + metaFeatureValue + ")");
+                    }
                 }
             }
+            conn.close();
         }
-        conn.close();
+        //csv
+        else{
+            String folderPath = properties.getProperty("modelFiles");
+            String filename = "tbl_Instances_Meta_Data_exp_"+expId+"_writeNum_"+writeNum+".csv";
+            FileWriter fileWriter = new FileWriter(folderPath+filename);
+            String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,instance_pos,batch_id,meta_feature_name,meta_feature_value\n";
+            fileWriter.append(fileHeader);
+            Iterator<Map.Entry<TreeMap<Integer, AttributeInfo>, int[]>> itr = writeInstanceMetaDataInGroup.entrySet().iterator();
+            //for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeInstanceMetaDataInGroup.entrySet()) {
+            while(itr.hasNext()){
+                Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry = itr.next();
+
+                TreeMap<Integer, AttributeInfo> instanceMetaData = outerEntry.getKey();
+                int[] instanceInfo = outerEntry.getValue();
+
+                int att_id = 0;
+                Iterator<Map.Entry<Integer, AttributeInfo>> itr2 = instanceMetaData.entrySet().iterator();
+                //for (Map.Entry<Integer, AttributeInfo> entry : instanceMetaData.entrySet()) {
+                while(itr2.hasNext()){
+                    Map.Entry<Integer, AttributeInfo> entry = itr2.next();
+                    String metaFeatureName = entry.getValue().getAttributeName();
+                    String metaFeatureValue = entry.getValue().getValue().toString();
+
+                    try {
+                        //insert to table
+                        fileWriter.append(String.valueOf(att_id));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceInfo[0]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceInfo[1]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceInfo[2]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceInfo[3]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceInfo[4]));
+                        fileWriter.append(",");
+                        fileWriter.append(metaFeatureName);
+                        fileWriter.append(",");
+                        fileWriter.append(metaFeatureValue);
+                        fileWriter.append("\n");
+                        att_id++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            fileWriter.flush();
+            fileWriter.close();
+            System.out.println("Wrote this file: " + folderPath+filename);
+            //return folderPath+filename;
+        }
     }
 
     private void writeResultsToInstanceMetaFeatures(TreeMap<Integer,AttributeInfo> instanceMetaData, int expID, int expIteration,
@@ -766,44 +906,85 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         conn.close();
     }
 
-    private void writeResultsToBatchMetaFeaturesGroup(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeBatchMetaDataInGroup, Properties properties, Dataset dataset) throws Exception{
-        String myDriver = properties.getProperty("JDBC_DRIVER");
-        String myUrl = properties.getProperty("DatabaseUrl");
-        Class.forName(myDriver);
-        Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
+    private void writeResultsToBatchMetaFeaturesGroup(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeBatchMetaDataInGroup, Properties properties, Dataset dataset, int exp_id, int writeNum, String writeType) throws Exception{
+        //sql
+        if (writeType=="sql") {
+            String myDriver = properties.getProperty("JDBC_DRIVER");
+            String myUrl = properties.getProperty("DatabaseUrl");
+            Class.forName(myDriver);
+            Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
 
-        for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeBatchMetaDataInGroup.entrySet()){
-            String sql = "insert into tbl_Batches_Meta_Data (att_id, exp_id, exp_iteration, batch_id,meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?)";
-            TreeMap<Integer,AttributeInfo> batchMetaData= outerEntry.getKey();
-            int[] batchInfo = outerEntry.getValue();
-            int att_id = 0;
-            for(Map.Entry<Integer,AttributeInfo> entry : batchMetaData.entrySet()){
-                String metaFeatureName = entry.getValue().getAttributeName();
-                String metaFeatureValue = entry.getValue().getValue().toString();
-                try{
-                    //insert to table
-                    PreparedStatement preparedStmt = conn.prepareStatement(sql);
-                    preparedStmt.setInt(1, att_id);
-                    preparedStmt.setInt(2, batchInfo[0]);
-                    preparedStmt.setInt(3, batchInfo[1]);
-                    preparedStmt.setInt(4, batchInfo[2]);
-                    preparedStmt.setString(5, metaFeatureName);
-                    preparedStmt.setString(6, metaFeatureValue);
+            for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeBatchMetaDataInGroup.entrySet()) {
+                String sql = "insert into tbl_Batches_Meta_Data (att_id, exp_id, exp_iteration, batch_id,meta_feature_name, meta_feature_value) values (?, ?, ?, ?, ?, ?)";
+                TreeMap<Integer, AttributeInfo> batchMetaData = outerEntry.getKey();
+                int[] batchInfo = outerEntry.getValue();
+                int att_id = 0;
+                for (Map.Entry<Integer, AttributeInfo> entry : batchMetaData.entrySet()) {
+                    String metaFeatureName = entry.getValue().getAttributeName();
+                    String metaFeatureValue = entry.getValue().getValue().toString();
+                    try {
+                        //insert to table
+                        PreparedStatement preparedStmt = conn.prepareStatement(sql);
+                        preparedStmt.setInt(1, att_id);
+                        preparedStmt.setInt(2, batchInfo[0]);
+                        preparedStmt.setInt(3, batchInfo[1]);
+                        preparedStmt.setInt(4, batchInfo[2]);
+                        preparedStmt.setString(5, metaFeatureName);
+                        preparedStmt.setString(6, metaFeatureValue);
 
-                    preparedStmt.execute();
-                    preparedStmt.close();
+                        preparedStmt.execute();
+                        preparedStmt.close();
 
-                    att_id++;
+                        att_id++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        System.out.println("failed insert batch for: (" + att_id + ", " + batchInfo[0] + ", " + batchInfo[1] + ", " + batchInfo[2]
+                                + ", " + metaFeatureName + ", " + metaFeatureValue + ")");
+                    }
+
                 }
-                catch (Exception e){
-                    e.printStackTrace();
-                    System.out.println("failed insert batch for: (" + att_id+", "+batchInfo[0]+", "+batchInfo[1]+", "+batchInfo[2]
-                            + ", "+ metaFeatureName + ", "+ metaFeatureValue + ")");
-                }
-
             }
+            conn.close();
         }
-        conn.close();
+        //csv
+        else{
+            String folderPath = properties.getProperty("modelFiles");
+            String filename = "tbl_Batches_Meta_Data_exp_"+exp_id+"_writeNum_"+writeNum+".csv";
+            FileWriter fileWriter = new FileWriter(folderPath+filename);
+            String fileHeader = "att_id,exp_id,exp_iteration,batch_id,meta_feature_name,meta_feature_value\n";
+            fileWriter.append(fileHeader);
+            for (Map.Entry<TreeMap<Integer, AttributeInfo>, int[]> outerEntry : writeBatchMetaDataInGroup.entrySet()) {
+                TreeMap<Integer, AttributeInfo> batchMetaData = outerEntry.getKey();
+                int[] batchInfo = outerEntry.getValue();
+                int att_id = 0;
+                for (Map.Entry<Integer, AttributeInfo> entry : batchMetaData.entrySet()) {
+                    String metaFeatureName = entry.getValue().getAttributeName();
+                    String metaFeatureValue = entry.getValue().getValue().toString();
+                    try {
+                        //insert to table
+                        fileWriter.append(String.valueOf(att_id));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(batchInfo[0]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(batchInfo[1]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(batchInfo[2]));
+                        fileWriter.append(",");
+                        fileWriter.append(metaFeatureName);
+                        fileWriter.append(",");
+                        fileWriter.append(metaFeatureValue);
+                        fileWriter.append("\n");
+                        att_id++;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            fileWriter.flush();
+            fileWriter.close();
+            System.out.println("Wrote this file: " + folderPath+filename);
+            //return folderPath+filename;
+        }
     }
 
     private void writeResultsToBatchesMetaFeatures(TreeMap<Integer,AttributeInfo> batchMetaData, int expID, int innerIteration,
@@ -838,30 +1019,67 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         conn.close();
     }
 
-    private void writeToInsertInstancesToBatchGroup(HashMap<ArrayList<Integer>, int[]> writeInsertBatchInGroup, Properties properties) throws Exception{
-        String myDriver = properties.getProperty("JDBC_DRIVER");
-        String myUrl = properties.getProperty("DatabaseUrl");
-        Class.forName(myDriver);
-        Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
-        for (Map.Entry<ArrayList<Integer>, int[]> outerEntry : writeInsertBatchInGroup.entrySet()){
-            String sql = "insert into tbl_Instance_In_Batch(exp_id, exp_iteration, inner_iteration_id,batch_id, instance_pos) values (?, ?, ?, ?, ?)";
-            ArrayList<Integer> instancesBatchPos = outerEntry.getKey();
-            int[] instanceToBatch = outerEntry.getValue();
-            for(Integer instancePosInBatch : instancesBatchPos){
-                //insert to table
-                int batch_id = instanceToBatch[2]*(-1) - 1;
-                PreparedStatement preparedStmt = conn.prepareStatement(sql);
-                preparedStmt.setInt (1, instanceToBatch[0]);
-                preparedStmt.setInt (2, instanceToBatch[1]);
-                preparedStmt.setInt (3, instanceToBatch[2]);
-                preparedStmt.setInt (4, batch_id);
-                preparedStmt.setInt (5, instancePosInBatch);
+    private void writeToInsertInstancesToBatchGroup(HashMap<ArrayList<Integer>, int[]> writeInsertBatchInGroup, Properties properties, int exp_id, int writeNum, String writeType) throws Exception{
+        //sql
+        if (writeType=="sql") {
+            String myDriver = properties.getProperty("JDBC_DRIVER");
+            String myUrl = properties.getProperty("DatabaseUrl");
+            Class.forName(myDriver);
+            Connection conn = DriverManager.getConnection(myUrl, properties.getProperty("DBUser"), properties.getProperty("DBPassword"));
+            for (Map.Entry<ArrayList<Integer>, int[]> outerEntry : writeInsertBatchInGroup.entrySet()) {
+                String sql = "insert into tbl_Instance_In_Batch(exp_id, exp_iteration, inner_iteration_id,batch_id, instance_pos) values (?, ?, ?, ?, ?)";
+                ArrayList<Integer> instancesBatchPos = outerEntry.getKey();
+                int[] instanceToBatch = outerEntry.getValue();
+                for (Integer instancePosInBatch : instancesBatchPos) {
+                    //insert to table
+                    int batch_id = instanceToBatch[2] * (-1) - 1;
+                    PreparedStatement preparedStmt = conn.prepareStatement(sql);
+                    preparedStmt.setInt(1, instanceToBatch[0]);
+                    preparedStmt.setInt(2, instanceToBatch[1]);
+                    preparedStmt.setInt(3, instanceToBatch[2]);
+                    preparedStmt.setInt(4, batch_id);
+                    preparedStmt.setInt(5, instancePosInBatch);
 
-                preparedStmt.execute();
-                preparedStmt.close();
+                    preparedStmt.execute();
+                    preparedStmt.close();
+                }
             }
+            conn.close();
         }
-        conn.close();
+        //csv
+        else{
+            String folderPath = properties.getProperty("modelFiles");
+            String filename = "tbl_Instance_In_Batch_exp_"+exp_id+"_writeNum_"+writeNum+".csv";
+            FileWriter fileWriter = new FileWriter(folderPath+filename);
+            String fileHeader = "exp_id,exp_iteration,inner_iteration_id,batch_id,instance_pos\n";
+            fileWriter.append(fileHeader);
+            for (Map.Entry<ArrayList<Integer>, int[]> outerEntry : writeInsertBatchInGroup.entrySet()) {
+                ArrayList<Integer> instancesBatchPos = outerEntry.getKey();
+                int[] instanceToBatch = outerEntry.getValue();
+                int att_id = 0;
+                for (Integer instancePosInBatch : instancesBatchPos) {
+                    int batch_id = instanceToBatch[2] * (-1) - 1;
+                    try {
+                        //insert to table
+                        fileWriter.append(String.valueOf(instanceToBatch[0]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceToBatch[1]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instanceToBatch[2]));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(batch_id));
+                        fileWriter.append(",");
+                        fileWriter.append(String.valueOf(instancePosInBatch));
+                        fileWriter.append("\n");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            fileWriter.flush();
+            fileWriter.close();
+            System.out.println("Wrote this file: " + folderPath+filename);
+        }
     }
 
     private void writeToInstancesInBatchTbl(int batch_id, int exp_id, int exp_iteration,
@@ -1193,10 +1411,14 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                 ,1));
         AttributeInfo measureAucAfterAddBatch_att = new AttributeInfo
                 ("afterBatchAuc", Column.columnType.Numeric, measureAucAfterAddBatch, -1);
+        double aucDifference = measureAucAfterAddBatch - measureAucBeforeAddBatch;
+        AttributeInfo aucDifference_att = new AttributeInfo
+                ("BatchAucDifference", Column.columnType.Numeric, aucDifference, -1);
 
         //add auc before and after to the results
         scores.put(scores.size(), measureAucBeforeAddBatch_att);
         scores.put(scores.size(), measureAucAfterAddBatch_att);
+        scores.put(scores.size(), aucDifference_att);
         return scores;
     }
 

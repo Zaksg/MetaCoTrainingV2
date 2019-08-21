@@ -86,23 +86,23 @@ public class InstancesBatchAttributes {
             distanceBatchPairsPerPartition.put(partitionIndex, scorePerInstanceBothClasses);
             //max
             AttributeInfo batchScoreMax = new AttributeInfo
-                    ("batchScoreMax" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMax(), -1);
+                    ("batchScoreMax_" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMax(), -1);
             instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMax);
             //min
             AttributeInfo batchScoreMin = new AttributeInfo
-                    ("batchScoreMin" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMin(), -1);
+                    ("batchScoreMin_" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMin(), -1);
             instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMin);
             //mean
             AttributeInfo batchScoreMean = new AttributeInfo
-                    ("batchScoreMean" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMean(), -1);
+                    ("batchScoreMean_" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getMean(), -1);
             instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMean);
             //std
             AttributeInfo batchScoreStd = new AttributeInfo
-                    ("batchScoreStd" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getStandardDeviation(), -1);
+                    ("batchScoreStd_" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getStandardDeviation(), -1);
             instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreStd);
             //p-50
             AttributeInfo batchScoreMedian = new AttributeInfo
-                    ("batchScoreMedian" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getPercentile(50), -1);
+                    ("batchScoreMedian_" + partitionIndex, Column.columnType.Numeric, batchScoreDistPerPartition.getPercentile(50), -1);
             instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMedian);
 
             /*pair distance
@@ -121,44 +121,44 @@ public class InstancesBatchAttributes {
         //label 0
         //max
         AttributeInfo batchScoreMaxLabel0 = new AttributeInfo
-                ("batchScoreMaxLabel0", Column.columnType.Numeric, batchScoreDistLabel0.getMax(), -1);
+                ("batchScoreMaxLabel_0", Column.columnType.Numeric, batchScoreDistLabel0.getMax(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMaxLabel0);
         //min
         AttributeInfo batchScoreMinLabel0 = new AttributeInfo
-                ("batchScoreMinLabel0", Column.columnType.Numeric, batchScoreDistLabel0.getMin(), -1);
+                ("batchScoreMinLabel_0", Column.columnType.Numeric, batchScoreDistLabel0.getMin(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMinLabel0);
         //mean
         AttributeInfo batchScoreMeanLabel0 = new AttributeInfo
-                ("batchScoreMeanLabel0", Column.columnType.Numeric, batchScoreDistLabel0.getMean(), -1);
+                ("batchScoreMeanLabel_0", Column.columnType.Numeric, batchScoreDistLabel0.getMean(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMeanLabel0);
         //std
         AttributeInfo batchScoreStdLabel0 = new AttributeInfo
-                ("batchScoreStdLabel0", Column.columnType.Numeric, batchScoreDistLabel0.getStandardDeviation(), -1);
+                ("batchScoreStdLabel_0", Column.columnType.Numeric, batchScoreDistLabel0.getStandardDeviation(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreStdLabel0);
         //p-50
         AttributeInfo batchScoreMedianLabel0 = new AttributeInfo
-                ("batchScoreMedianLabel0", Column.columnType.Numeric, batchScoreDistLabel0.getPercentile(50), -1);
+                ("batchScoreMedianLabel_0", Column.columnType.Numeric, batchScoreDistLabel0.getPercentile(50), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMedianLabel0);
         //label 1
         //max
         AttributeInfo batchScoreMaxLabel1 = new AttributeInfo
-                ("batchScoreMaxLabel1", Column.columnType.Numeric, batchScoreDistLabel1.getMax(), -1);
+                ("batchScoreMaxLabel_1", Column.columnType.Numeric, batchScoreDistLabel1.getMax(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMaxLabel1);
         //min
         AttributeInfo batchScoreMinLabel1 = new AttributeInfo
-                ("batchScoreMinLabel1", Column.columnType.Numeric, batchScoreDistLabel1.getMin(), -1);
+                ("batchScoreMinLabel_1", Column.columnType.Numeric, batchScoreDistLabel1.getMin(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMinLabel1);
         //mean
         AttributeInfo batchScoreMeanLabel1 = new AttributeInfo
-                ("batchScoreMeanLabel1", Column.columnType.Numeric, batchScoreDistLabel1.getMean(), -1);
+                ("batchScoreMeanLabel_1", Column.columnType.Numeric, batchScoreDistLabel1.getMean(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMeanLabel1);
         //std
         AttributeInfo batchScoreStdLabel1 = new AttributeInfo
-                ("batchScoreStdLabel1", Column.columnType.Numeric, batchScoreDistLabel1.getStandardDeviation(), -1);
+                ("batchScoreStdLabel_1", Column.columnType.Numeric, batchScoreDistLabel1.getStandardDeviation(), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreStdLabel1);
         //p-50
         AttributeInfo batchScoreMedianLabel1 = new AttributeInfo
-                ("batchScoreMedianLabel1", Column.columnType.Numeric, batchScoreDistLabel1.getPercentile(50), -1);
+                ("batchScoreMedianLabel_1", Column.columnType.Numeric, batchScoreDistLabel1.getPercentile(50), -1);
         instanceAttributesToReturn.put(instanceAttributesToReturn.size(), batchScoreMedianLabel1);
 
         //delta between partition - per instance
