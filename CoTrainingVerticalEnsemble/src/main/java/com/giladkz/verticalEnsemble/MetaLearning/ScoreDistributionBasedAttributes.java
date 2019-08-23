@@ -834,13 +834,12 @@ public class ScoreDistributionBasedAttributes {
             }
         }
         else {
-            while (samplesConfidenceScoreValues.size() < desiredNumberOfSamplesInSet) {
-                int pos = rnd.nextInt(scoreDistributions.keySet().size());
-                int keyValue = keysetPositions[pos];
-
-                if (!samplesConfidenceScoreValues.containsKey(keyValue)) {
-                    samplesConfidenceScoreValues.put(pos, scoreDistributions.get(keyValue)[targetClassIndex]);
-                }
+            List<Integer> scoresListToPull = new ArrayList<Integer>(scoreDistributions.keySet());
+            Collections.shuffle(scoresListToPull);
+            Set<Integer> scoresListToPullRandomSet = new HashSet<Integer>(scoresListToPull.subList(0, desiredNumberOfSamplesInSet));
+            for (Integer pos: scoresListToPullRandomSet) {
+                /*int keyValue = keysetPositions[pos];*/
+                samplesConfidenceScoreValues.put(pos, scoreDistributions.get(pos/*keyValue*/)[targetClassIndex]);
             }
         }
 

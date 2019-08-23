@@ -61,11 +61,10 @@ public class App
         listOfFiles = (File[])listFilesBeforeShuffle.toArray();
 
 
-        String[] toDoDatasets = {"cardiography_new.arff"};
+        String[] toDoDatasets = {"puma32H.arff"};
 /*        String[] toDoDatasets = {"german_credit.arff", "ailerons.arff", "cardiography_new.arff"
-                , "contraceptive.arff", "cpu_act.arff"
-                , "delta_elevators.arff", "puma32H.arff", "puma8NH.arff", "seismic-bumps.arff"
-                , "space_ga.arff", "wind.arff"}; // "bank-full.arff",*/
+                , "contraceptive.arff", "delta_elevators.arff", "seismic-bumps.arff", "space_ga.arff"
+                , "cpu_act.arff", "puma32H.arff", "puma8NH.arff", "wind.arff"}; // "bank-full.arff",*/
         if(args.length > 0){
             toDoDatasets = args;
         }

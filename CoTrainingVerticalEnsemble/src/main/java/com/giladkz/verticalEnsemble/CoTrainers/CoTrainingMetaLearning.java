@@ -265,7 +265,11 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                         " ms. batch meta features: " + (batch_finish - batch_start) + " ms. auc: "+ (auc_finish - auc_start)
                                         + " ms. td: "+ (td_finish - td_start) + " ms.");*/
                             }
+                            //scrumbel candidates
+                            topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                         }
+                        //scrumbel candidates
+                        topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                     }
                 }
                 //end smart selection
@@ -621,7 +625,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
         //csv
         else{
             String folderPath = properties.getProperty("modelFiles");
-            String filename = "tbl_Score_Distribution_Meta_Data_exp_"+exp_id+"_writeNum_"+writeNum+".csv";
+            String filename = "tbl_Batches_Score_exp_"+exp_id+"_writeNum_"+writeNum+".csv";
             FileWriter fileWriter = new FileWriter(folderPath+filename);
             String fileHeader = "att_id,batch_id,exp_id,exp_iteration,score_type,score_value,test_set_size\n";
             fileWriter.append(fileHeader);
@@ -770,7 +774,42 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             fileWriter.flush();
             fileWriter.close();
             System.out.println("Wrote this file: " + folderPath+filename);
-            //return folderPath+filename;
+            /*
+            //pivot table pilot
+            String pivot_filename = "pivot_tbl_Score_Distribution_Meta_Data_exp_"+expIteration+"_starting_iteration_"+innerIteration+expID+".csv";
+            FileWriter pivot_fileWriter = new FileWriter(folderPath+pivot_filename);
+            String pivot_fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id";
+            for (Map.Entry<Integer, AttributeInfo> entry : scroeDistData.entrySet()) {
+                String metaFeatureName = entry.getValue().getAttributeName();
+                pivot_fileHeader+=","+metaFeatureName;
+            }
+            pivot_fileWriter.append(pivot_fileHeader+"\n");
+
+            pivot_fileWriter.append(String.valueOf(att_id));
+            pivot_fileWriter.append(",");
+            pivot_fileWriter.append(String.valueOf(expID));
+            pivot_fileWriter.append(",");
+            pivot_fileWriter.append(String.valueOf(expIteration));
+            pivot_fileWriter.append(",");
+            pivot_fileWriter.append(String.valueOf(innerIteration));
+
+            for (Map.Entry<Integer, AttributeInfo> entry : scroeDistData.entrySet()) {
+                pivot_fileWriter.append(",");
+                Object metaFeatureValueRaw = entry.getValue().getValue();
+                //cast results to double
+                Double metaFeatureValue = null;
+                if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = (Double) metaFeatureValueRaw;
+                } else if (metaFeatureValueRaw instanceof Double) {
+                    metaFeatureValue = ((Double) metaFeatureValueRaw).doubleValue();
+                }
+                if (Double.isNaN(metaFeatureValue)) {
+                    metaFeatureValue = -1.0;
+                }
+                pivot_fileWriter.append(String.valueOf(metaFeatureValue));
+            }
+            pivot_fileWriter.flush();
+            pivot_fileWriter.close();*/
         }
     }
 
@@ -1313,8 +1352,6 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
     }
 
 
-
-    //ToDo: check why labeledTrainingSetIndices keep growing every itetaion while it shouldn't
     private TreeMap<Integer,AttributeInfo> tdScoreDist(Dataset dataset
             , HashMap<Integer, List<Integer>> feature_sets, HashMap<Integer, Integer> assignedLabelsOriginalIndex
             , List<Integer> labeledTrainingSetIndices, List<Integer> unlabeledTrainingSetIndices
