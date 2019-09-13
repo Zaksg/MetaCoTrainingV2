@@ -4,7 +4,9 @@ import com.giladkz.verticalEnsemble.Discretizers.DiscretizerAbstract;
 import com.giladkz.verticalEnsemble.MetaLearning.InstanceAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.InstancesBatchAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributes;
+import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributesTdBatch;
 import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
+import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
 import java.io.*;
@@ -140,8 +142,8 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             boolean getDatasetInstancesSucc = false;
             for (int numberOfTries = 0; numberOfTries < 10 && !getDatasetInstancesSucc; numberOfTries++) {
                 try{
-                    labeledToMetaFeatures = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices,properties);
-                    unlabeledToMetaFeatures = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices,properties);
+                    labeledToMetaFeatures = getDataSetByInstancesIndices(dataset,labeledTrainingSetIndices,exp_id, -2, properties);
+                    unlabeledToMetaFeatures = getDataSetByInstancesIndices(dataset,unlabeledTrainingSetIndices,exp_id, -2, properties);
                     getDatasetInstancesSucc = true;
                 }catch (Exception e){
                     //Thread.sleep(1000);
@@ -170,17 +172,8 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             if (Objects.equals(properties.getProperty("batchSelection"), "smart")){
                 //smart selection.
                 //create: structure: relative index -> [instance_pos, label]
-                ArrayList<ArrayList<ArrayList<Integer>>> topSelectedInstancesCandidatesArr = new ArrayList<>();
-                topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
+                ArrayList<ArrayList<ArrayList<Integer>>> topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                 System.out.println("Got all top candidates");
-                /*
-                for (int partitionIndex : evaluationResultsPerSetAndInteration.keySet()){
-                    for (int class_num=0; class_num<=1; class_num++){
-                        ArrayList<ArrayList<Integer>> topSelectedInstancesCandidates = getTopCandidates(evaluationResultsPerSetAndInteration
-                                , partitionIndex, unlabeledTrainingSetIndices,class_num);
-                        topSelectedInstancesCandidatesArr.add(topSelectedInstancesCandidates);
-                    }
-                }*/
                 //generate batches
                 int batchIndex = 0;
                 HashMap<Character,int[]> pairsDict = new HashMap<>();
@@ -245,8 +238,15 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                                 writeBatchMetaDataInGroup.put(batchAttributeCurrentIterationList, batchInfoToWrite);
 
                                 batchIndex++;
+
+                                TreeMap<Integer,AttributeInfo> tdScoreDistributionCurrentIteration = tdScoreDist(dataset, feature_sets
+                                        , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
+                                        , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
+                                        , dataset.getTestFolds().get(0), targetClassIndex, i, exp_id, batchIndex, properties);
                             }
+                            topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                         }
+                        topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                     }
                 }
                 //end smart selection
@@ -342,7 +342,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             //instances of selected batch by the original algorithm
             GetIndicesOfInstancesToLabelBasicRelativeIndex(dataset, instances_per_class_per_iteration, evaluationResultsPerSetAndInteration, instancesToAddPerClass, random_seed, unlabeledTrainingSetIndices, instancesPerPartition, selectedInstancesRelativeIndexes, indicesOfAddedInstances);
             for (Integer instance: selectedInstancesRelativeIndexes.keySet()){
-                Integer originalInstancePos = unlabeledTrainingSetIndices.get(instance);
+                Integer originalInstancePos = instance;
                 Integer assignedClass = selectedInstancesRelativeIndexes.get(instance);
                 TreeMap<Integer,AttributeInfo> instanceAttributeCurrentIteration = instanceAttributes.getInstanceAssignmentMetaFeatures(
                         unlabeledToMetaFeatures,dataset,
@@ -400,7 +400,8 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                 }
                 //csv
                 else{
-                    String cmd = "python /data/home/zaksg/co-train/meta-learn/meta_model_for_java_csv.py ";
+                    //String cmd = "python /data/home/zaksg/co-train/meta-learn/meta_model_for_java_csv.py ";
+                    String cmd = "python /data/home/zaksg/co-train/cotrain-v2/meta-features/meta_model_for_java_csv_v2.py ";
                     //String cmd = "python /Users/guyz/Documents/CoTrainingVerticalEnsemble/meta_model/venv/meta_model_for_java_csv.py ";
                     Process pythonRun = Runtime.getRuntime().exec(
                             cmd + original_arff_file+" "+file_instanceMetaFeatures+" "+file_batchMetaFeatures+" "+file_scoreDistFeatures);
@@ -425,10 +426,9 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             //ToDo: write a function to insert DB the selected instances and their confidence/true label
             /*super.WriteInformationOnAddedItems(instancesToAddPerClass, i, exp_id
                     ,iteration,weight_for_log,instancesPerPartition, properties, dataset);*/
+            writeAccuracySelectedBatch(instancesToAddPerClass, dataset, properties, exp_id, i, iteration, selectedBatchId);
 
             //step 3 - set the class labels of the newly labeled instances to what we THINK they are
-            //because the columns of the partitions are actually the columns of the original dataset,
-            //there is no problem changing things only there
             for (int classIndex : instancesToAddPerClass.keySet()) {
                 dataset.updateInstanceTargetClassValue(new ArrayList<>(instancesToAddPerClass.get(classIndex).keySet()), classIndex);
             }
@@ -481,6 +481,41 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             System.out.println("couldn't writeRawResultsOnTestSet");
         }
         return null;
+    }
+
+    private void writeAccuracySelectedBatch(HashMap<Integer, HashMap<Integer, Double>> instancesToAddPerClass
+            , Dataset dataset, Properties properties
+            , int exp_id, int i, int iteration, int selectedBatchId) throws Exception {
+        String folder = properties.getProperty("modelFiles");
+        String filename = "tbl_Selected_Batch_Analysis_exp_"+exp_id+"_iteration_"+i+".csv";
+        FileWriter fileWriter = new FileWriter(folder+filename);
+        String fileHeader = "exp_id,exp_iteration,batch_id,instance_pos,true_label,predicted_label,confidence\n";
+        fileWriter.append(fileHeader);
+
+        for (Integer label: instancesToAddPerClass.keySet()) {
+            for (Map.Entry<Integer, Double> instanceScore : instancesToAddPerClass.get(label).entrySet()){
+                int instancePos = instanceScore.getKey();
+                double conf = instanceScore.getValue();
+                int trueLabel = dataset.getInstancesClassByIndex(Arrays.asList(instancePos)).get(instancePos);
+
+                fileWriter.append(String.valueOf(exp_id));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(i));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(selectedBatchId));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(instancePos));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(trueLabel));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(label));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(conf));
+                fileWriter.append("\n");
+            }
+        }
+        fileWriter.flush();
+        fileWriter.close();
     }
 
     private void writeRawResultsOnTestSet(HashMap<Integer, ArrayList<EvaluationInfo>> evaluationResultsOnTestSet
@@ -609,7 +644,9 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                 ArrayList<Integer> topInstancesCandidates = new ArrayList<>();
                 TreeMap<Double, List<Integer>> topConfTree = evaluationResultsPerSetAndInteration.get(partitionIndex)
                         .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num);
-                int limitItems = 8;
+                //limit to top 10% of instances
+                int limitItems = (int)(evaluationResultsPerSetAndInteration.get(partitionIndex)
+                        .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num).size()*0.1);
                 //flatten top instances
                 for(Map.Entry<Double, List<Integer>> entry : topConfTree.entrySet()) {
                     if (limitItems < 1){
@@ -618,12 +655,13 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                     topInstancesCandidates.addAll(entry.getValue());
                     limitItems--;
                 }
-                //select top instances
+                Collections.shuffle(topInstancesCandidates);
+                //select top instances - 4 per partition per class
                 int countTop = 3;
                 for(int top_results=0; top_results<=countTop; top_results++){
                     int relativeIndex = topInstancesCandidates.get(top_results);
                     if (!uniqueInstances.contains(relativeIndex)){
-                        Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
+                        Integer instancePos = relativeIndex; //Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
                         ArrayList<Integer> relative__and_real_pos = new ArrayList<>();
                         relative__and_real_pos.add(relativeIndex);
                         relative__and_real_pos.add(instancePos);
@@ -639,35 +677,6 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             }
         }
         return res;
-    }
-
-    //all candidates for batches - for given partition and class
-    private ArrayList<ArrayList<Integer>> getTopCandidates(
-            HashMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInteration
-            , int partitionIndex, List<Integer> unlabeledTrainingSetIndices
-            , int class_num) {
-        ArrayList<ArrayList<Integer>> result = new ArrayList<>();
-        //get all candidates
-        ArrayList<Integer> topInstancesCandidates = new ArrayList<>();
-        TreeMap<Double, List<Integer>> topConfTree = evaluationResultsPerSetAndInteration.get(partitionIndex)
-                .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num);
-        int limitItems = 4;
-        for(Map.Entry<Double, List<Integer>> entry : topConfTree.entrySet()) {
-            if (limitItems < 1){
-                break;
-            }
-            topInstancesCandidates.addAll(entry.getValue());
-            limitItems--;
-        }
-        for(int top_results=0; top_results<=3; top_results++){
-            int relativeIndex = topInstancesCandidates.get(top_results);
-            Integer instancePos = unlabeledTrainingSetIndices.get(relativeIndex);
-            ArrayList<Integer> relative_pos = new ArrayList<>();
-            relative_pos.add(relativeIndex);
-            relative_pos.add(instancePos);
-            result.add(relative_pos);
-        }
-        return result;
     }
 
 
@@ -749,93 +758,18 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
     }
 
 
-    private Dataset getDataSetByInstancesIndices (Dataset dataset, List<Integer> setIndices, Properties properties)throws Exception{
+    private Dataset getDataSetByInstancesIndices(Dataset dataset, List<Integer> setIndices, int exp_id, int batchIndex, Properties properties)throws Exception{
 
+        Date expDate = new Date();
         Loader loader = new Loader();
-        String tempFilePath = properties.getProperty("tempDirectory") + "temp.arff";
-        Files.deleteIfExists(Paths.get(tempFilePath));
-        FoldsInfo foldsInfo = new FoldsInfo(1,0,0,1,-1,0,0,0,-1,true, FoldsInfo.foldType.Train);
+        FoldsInfo foldsInfo = new FoldsInfo(1,0,0,1
+                ,-1,0,0,0,-1
+                ,true, FoldsInfo.foldType.Train);
+        Instances indicedInstances = dataset.generateSet(FoldsInfo.foldType.Train, setIndices);
+        Dataset newDataset = loader.readArff(indicedInstances, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo
+                , dataset, FoldsInfo.foldType.Train, setIndices);
 
-        //generate the labeled training instances dataset
-        ArffSaver s= new ArffSaver();
-        s.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,setIndices));
-        s.setFile(new File(tempFilePath));
-        s.writeBatch();
-        BufferedReader reader = new BufferedReader(new FileReader(tempFilePath));
-        Dataset newDataset = loader.readArff(reader, 0, null, dataset.getTargetColumnIndex(), 1, foldsInfo);
-        reader.close();
-
-        File file = new File(tempFilePath);
-
-        if(!file.delete())
-        {
-            throw new Exception("Temp file not deleted1");
-        }
         return newDataset;
-    }
-
-    private HashMap<int[], Double> runClassifierOnSampledBatch(int expID, int expIteration, int innerIteration, int batch_id
-            , Dataset dataset, Fold testFold, Fold trainFold, HashMap<Integer,Dataset> datasetPartitions,
-                                                               HashMap<Integer, Integer> batchInstancesToAdd, List<Integer> labeledTrainingSetIndices, Properties properties) throws Exception {
-
-        HashMap<int[], Double> result = new HashMap<>();
-        //clone the original dataset
-        Dataset clonedDataset = dataset.replicateDataset();
-        List<Integer> clonedlabeLedTrainingSetIndices = new ArrayList<>(labeledTrainingSetIndices);
-        //run classifier before adding - only for the first batch in the iteration
-        AUC aucBeforeAddBatch = new AUC();
-        int[] testFoldLabelsBeforeAdding = clonedDataset.getTargetClassLabelsByIndex(testFold.getIndices());
-        //Test the entire newly-labeled training set on the test set
-        EvaluationInfo evaluationResultsBeforeAdding = runClassifier(properties.getProperty("classifier"),
-                clonedDataset.generateSet(FoldsInfo.foldType.Train,clonedlabeLedTrainingSetIndices),
-                clonedDataset.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()), new ArrayList<>(testFold.getIndices()), properties);
-        double measureAucBeforeAddBatch =
-                aucBeforeAddBatch.measure(testFoldLabelsBeforeAdding
-                        , getSingleClassValueConfidenceScore(evaluationResultsBeforeAdding.getScoreDistributions()
-                        ,1));
-        int[] infoListBefore = new int[5];
-        infoListBefore[0] = batch_id;
-        infoListBefore[1] = expID;
-        infoListBefore[2] = innerIteration;
-        infoListBefore[3] = testFoldLabelsBeforeAdding.length;
-        infoListBefore[4] = -1; //-1="auc_before_add_batch", +1="auc_after_add_batch"
-        result.put(infoListBefore, measureAucBeforeAddBatch);
-
-        //add batch instances to the cloned dataset
-        ArrayList<Integer> instancesClass0 = new ArrayList<>();
-        ArrayList<Integer> instancesClass1 = new ArrayList<>();
-        for (Map.Entry<Integer,Integer> entry : batchInstancesToAdd.entrySet()){
-            int instancePos = entry.getKey();
-            int classIndex = entry.getValue();
-            if (classIndex == 0){
-                instancesClass0.add(instancePos);
-            }
-            else{
-                instancesClass1.add(instancePos);
-            }
-            clonedlabeLedTrainingSetIndices.add(instancePos);
-        }
-        clonedDataset.updateInstanceTargetClassValue(instancesClass0, 0);
-        clonedDataset.updateInstanceTargetClassValue(instancesClass1, 1);
-
-        //run classifier after adding
-        AUC aucAfterAddBatch = new AUC();
-        int[] testFoldLabelsAfterAdding = clonedDataset.getTargetClassLabelsByIndex(testFold.getIndices());
-        //Test the entire newly-labeled training set on the test set
-        EvaluationInfo evaluationResultsAfterAdding = runClassifier(properties.getProperty("classifier"),
-                clonedDataset.generateSet(FoldsInfo.foldType.Train,clonedlabeLedTrainingSetIndices),
-                clonedDataset.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()), new ArrayList<>(testFold.getIndices()), properties);
-        double measureAucAfterAddBatch = aucAfterAddBatch.measure
-                (testFoldLabelsAfterAdding, getSingleClassValueConfidenceScore(evaluationResultsAfterAdding.getScoreDistributions()
-                        ,1));
-        int[] infoListAfter = new int[5];
-        infoListAfter[0] = batch_id;
-        infoListAfter[1] = expID;
-        infoListAfter[2] = innerIteration;
-        infoListAfter[3] = testFoldLabelsAfterAdding.length;
-        infoListAfter[4] = 1; //-1="auc_before_add_batch", +1="auc_after_add_batch"
-        result.put(infoListAfter, measureAucAfterAddBatch);
-        return result;
     }
 
 
@@ -886,7 +820,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
         }
         //csv
         else{
-            String folder = "/Users/giladkatz/tmp/co_training_files/";
+            String folder = properties.getProperty("modelFiles");
             String filename = "tbl_meta_learn_Score_Distribution_Meta_Data_exp_"+expIteration+"_iteration_"+innerIteration+expID+".csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,meta_feature_name,meta_feature_value\n";
@@ -975,7 +909,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
         }
         //csv
         else{
-            String folder = "/Users/giladkatz/tmp/co_training_files/";
+            String folder = properties.getProperty("modelFiles");
             String filename = "tbl_meta_learn_Instances_Meta_Data_exp_"+expID+"_iteration_"+expIteration+innerIteration+".csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,instance_pos,batch_id,meta_feature_name,meta_feature_value\n";
@@ -1169,7 +1103,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
         }
         //csv
         else{
-            String folder = "/Users/giladkatz/tmp/co_training_files/";
+            String folder = properties.getProperty("modelFiles");
             String filename = "tbl_meta_learn_Batches_Meta_Data_exp_"+expID+"_iteration_"+expIteration+innerIteration+".csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,batch_id,meta_feature_name,meta_feature_value\n";
@@ -1340,6 +1274,94 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
         conn.close();
     }
 
+    private Dataset generateDatasetCopyWithBatchAdded (
+            Dataset dataset, HashMap<Integer, Integer> batchInstancesToAdd, List<Integer> labeledTrainingSetIndices
+            , Properties properties) throws Exception {
+        //clone the original dataset
+        Dataset clonedDataset = dataset.replicateDataset();
+        List<Integer> clonedlabeLedTrainingSetIndices = new ArrayList<>(labeledTrainingSetIndices);
+        //add batch instances to the cloned dataset
+        ArrayList<Integer> instancesClass0 = new ArrayList<>();
+        ArrayList<Integer> instancesClass1 = new ArrayList<>();
+        for (Map.Entry<Integer,Integer> entry : batchInstancesToAdd.entrySet()){
+            int instancePos = entry.getKey();
+            int classIndex = entry.getValue();
+            if (classIndex == 0){
+                instancesClass0.add(instancePos);
+            }
+            else{
+                instancesClass1.add(instancePos);
+            }
+            clonedlabeLedTrainingSetIndices.add(instancePos);
+        }
+        clonedDataset.updateInstanceTargetClassValue(instancesClass0, 0);
+        clonedDataset.updateInstanceTargetClassValue(instancesClass1, 1);
+        return clonedDataset;
+    }
 
+    private TreeMap<Integer,AttributeInfo> tdScoreDist(Dataset dataset
+            , HashMap<Integer, List<Integer>> feature_sets, HashMap<Integer, Integer> assignedLabelsOriginalIndex
+            , List<Integer> labeledTrainingSetIndices, List<Integer> unlabeledTrainingSetIndices
+            , TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInterationTree, EvaluationPerIteraion unifiedDatasetEvaulationResults
+            , Fold testFold, int targetClassIndex, int i, int exp_id, int batchIndex, Properties properties) throws Exception{
+        TreeMap<Integer,AttributeInfo> scores = new TreeMap<>();
+        ScoreDistributionBasedAttributesTdBatch scoreDist = new ScoreDistributionBasedAttributesTdBatch();
+
+        //add batch to the dataset
+        Dataset datasetAddedBatch = generateDatasetCopyWithBatchAdded(dataset, assignedLabelsOriginalIndex
+                , labeledTrainingSetIndices,  properties);
+
+        //labeled instances in the new dataset
+        List<Integer> labeledTrainingSetIndices_cloned = new ArrayList<>(labeledTrainingSetIndices);
+        labeledTrainingSetIndices_cloned.addAll(assignedLabelsOriginalIndex.keySet());
+
+        //unlabeled instances in the new dataset
+        List<Integer> unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices;
+        unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices_cloned.stream().filter(line -> !labeledTrainingSetIndices_cloned.contains(line)).collect(Collectors.toList());
+
+        //change to the labeled and unlabeled format
+        Dataset labeledToMetaFeatures_td = datasetAddedBatch;
+        Dataset unlabeledToMetaFeatures_td = datasetAddedBatch;
+        boolean getDatasetInstancesSucc = false;
+        for (int numberOfTries = 0; numberOfTries < 5 && !getDatasetInstancesSucc; numberOfTries++) {
+            try{
+                labeledToMetaFeatures_td = getDataSetByInstancesIndices(datasetAddedBatch,labeledTrainingSetIndices_cloned,(-1)*exp_id,batchIndex,properties);
+                unlabeledToMetaFeatures_td = getDataSetByInstancesIndices(datasetAddedBatch,unlabeledTrainingSetIndices_cloned,(-1)*exp_id,batchIndex,properties);
+                getDatasetInstancesSucc = true;
+            }
+            catch (Exception e){
+                Thread.sleep(1000);
+                System.out.println("failed reading file, sleep for 1 second, for try");
+                getDatasetInstancesSucc = false;
+            }
+        }
+        //eveluate results of the new dataset - 3 EvaluationInfo objects: 2 per partition + unified
+        HashMap<Integer,Dataset> datasetPartitions = new HashMap<>();
+        for (int index : feature_sets.keySet()) {
+            Dataset partition = datasetAddedBatch.replicateDatasetByColumnIndices(feature_sets.get(index));
+            datasetPartitions.put(index, partition);
+        }
+        HashMap<Integer, EvaluationInfo> evaluationPerPartition_td = new HashMap<>();
+        for (int partitionIndex : feature_sets.keySet()) {
+            EvaluationInfo evaluationResults = runClassifier(properties.getProperty("classifier"),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices_cloned),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices_cloned),
+                    new ArrayList<>(unlabeledTrainingSetIndices), properties);
+            evaluationPerPartition_td.put(partitionIndex, evaluationResults);
+        }
+        EvaluationInfo unifiedSetEvaluationResults_td = runClassifier(properties.getProperty("classifier"),
+                dataset.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices_cloned),
+                dataset.generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices_cloned),
+                new ArrayList<>(unlabeledTrainingSetIndices_cloned), properties);
+
+        //calculate meta features
+        scores = scoreDist.getScoreDistributionBasedAttributes(datasetAddedBatch
+                , evaluationPerPartition_td, unifiedSetEvaluationResults_td
+                , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
+                , labeledToMetaFeatures_td, unlabeledToMetaFeatures_td
+                , i, targetClassIndex, properties);
+
+        return scores;
+    }
 
 }

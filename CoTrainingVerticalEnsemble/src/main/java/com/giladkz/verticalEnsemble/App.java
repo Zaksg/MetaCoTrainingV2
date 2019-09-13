@@ -61,14 +61,14 @@ public class App
         listOfFiles = (File[])listFilesBeforeShuffle.toArray();
 
 
-        String[] toDoDatasets = {"puma32H.arff"};
+        String[] toDoDatasets = {"german_credit.arff"};
 /*        String[] toDoDatasets = {"german_credit.arff", "ailerons.arff", "cardiography_new.arff"
                 , "contraceptive.arff", "delta_elevators.arff", "seismic-bumps.arff", "space_ga.arff"
-                , "cpu_act.arff", "puma32H.arff", "puma8NH.arff", "wind.arff"}; // "bank-full.arff",*/
+                , "cpu_act.arff", "puma32H.arff", "puma8NH.arff", "wind.arff", "bank-full.arff"};*/
         if(args.length > 0){
             toDoDatasets = args;
         }
-        String[] doneDatasets = {"german_credit.arff"};
+        //String[] doneDatasets = {"german_credit.arff"};
 
         //double auc_check = checkAucClac();
 
@@ -133,14 +133,14 @@ public class App
             HashMap<Integer, List<Integer>> featureSets = featuresSelector.Get_Feature_Sets(dataset,discretizer,valueFunction,1,2,1000,1,0,dataset.getName(),false, i);
 
             //original
-            //Dataset finalDataset_otiginal = coTrainer_original.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);
+            Dataset finalDataset_otiginal = coTrainer_original.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);
 
             //meta model generation
-            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);
+/*            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);*/
 
             //meta model selection
-            //System.out.println("Original model done with exp id: "+expID_original+". Start meta model with exp id: "+ expID_meta_model);
-            //Dataset finalDataset_meta_model = coTrainer_meta_model.Train_Classifiers(featureSets,dataset_meta_model,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset_meta_model.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_meta_model,"test",0,0,false, i);
+            System.out.println("Original model done with exp id: "+expID_original+". Start meta model with exp id: "+ expID_meta_model);
+            Dataset finalDataset_meta_model = coTrainer_meta_model.Train_Classifiers(featureSets,dataset_meta_model,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset_meta_model.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_meta_model,"test",0,0,false, i);
 
             Date experimentEndDate = new Date();
             System.out.println(experimentEndDate.toString() + " Experiment ended");

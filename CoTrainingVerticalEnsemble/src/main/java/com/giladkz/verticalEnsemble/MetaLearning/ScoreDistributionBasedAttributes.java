@@ -1083,8 +1083,8 @@ public class ScoreDistributionBasedAttributes {
                 imbalanceRatioByConfidenceScoreRatio.put(threshold, -1.0);
                 imbalanceScoreRatioToTrueRatio.put(threshold, -1.0);
             }
-            AttributeInfo testSetImbalanceRatioByThresholdAtt = new AttributeInfo("testSetImbalanceRatioByThreshold_" + "_" + identifier, Column.columnType.Numeric, imbalanceRatioByConfidenceScoreRatio.get(threshold), -1);
-            AttributeInfo testAndTrainSetImbalanceRatiosAtt = new AttributeInfo("testAndTrainSetImbalanceRatios_" + "_" + identifier, Column.columnType.Numeric, imbalanceScoreRatioToTrueRatio.get(threshold), -1);
+            AttributeInfo testSetImbalanceRatioByThresholdAtt = new AttributeInfo("testSetImbalanceRatioByThreshold__"+identifier+"_"+threshold , Column.columnType.Numeric, imbalanceRatioByConfidenceScoreRatio.get(threshold), -1);
+            AttributeInfo testAndTrainSetImbalanceRatiosAtt = new AttributeInfo("testAndTrainSetImbalanceRatios__"+identifier+"_"+threshold, Column.columnType.Numeric, imbalanceScoreRatioToTrueRatio.get(threshold), -1);
             generalStatisticsAttributes.put(generalStatisticsAttributes.size(), testSetImbalanceRatioByThresholdAtt);
             generalStatisticsAttributes.put(generalStatisticsAttributes.size(), testAndTrainSetImbalanceRatiosAtt);
         }
