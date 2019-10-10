@@ -26,7 +26,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
 
         /*This set is meta features analyzes the scores assigned to the unlabeled training set at each iteration.
         * Its possible uses include:
@@ -54,14 +54,16 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
         /* Randomly select the labeled instances from the training set. The remaining ones will be used as the unlabeled.
          * It is important that we use a fixed random seed for repeatability */
-        List<Integer> labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        List<Integer> labeledTrainingSetIndices;
+        if (labeledTrainingSet.size() > 0 ){
+            labeledTrainingSetIndices = new ArrayList<>(labeledTrainingSet);
+        }else{
+            labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        }
 
-        /* If the unlabeled training set is larger than the specified parameter, we will sample X instances to
-         * serve as the pool. TODO: replenish the pool upon sampling (although given the sizes it's not such a big deal */
         List<Integer> unlabeledTrainingSetIndices = new ArrayList<>();
         Fold trainingFold = dataset.getTrainingFolds().get(0); //There should only be one training fold in this type of project
         if (trainingFold.getIndices().size()-initial_number_of_labled_samples > initial_unlabeled_set_size) {
-            //ToDo: add a random sampling function
             for (int index : trainingFold.getIndices()) {
                 if (!labeledTrainingSetIndices.contains(index) && unlabeledTrainingSetIndices.size() < initial_unlabeled_set_size
                         && new Random().nextInt(100)< 96) {
@@ -256,11 +258,12 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                         , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
                                         , dataset.getTestFolds().get(0), targetClassIndex, i, exp_id, batchIndex, properties);
                                 //writeResultsToScoreDistribution(tdScoreDistributionCurrentIteration, i, exp_id, iteration, properties, dataset);
-                                //ToDo: extract before and after auc to write to writeSampleBatchScoreInGroup and not to batch meta features!!
+                                //for python: extract before and after auc to write to writeSampleBatchScoreInGroup and not to batch meta features!!
                                 writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                                 long td_finish = System.currentTimeMillis();
                                 //System.out.println("Td for batch: " + batchIndex+" in " + (td_finish - td_start) + " ms");
-/*                                System.out.println("Total batch time: " + batchIndex+": total: " + (td_finish - get_batch_start) +
+                                /*
+                                System.out.println("Total batch time: " + batchIndex+": total: " + (td_finish - get_batch_start) +
                                         " ms. instances meta features:" +(instances_finish - instances_start) +
                                         " ms. batch meta features: " + (batch_finish - batch_start) + " ms. auc: "+ (auc_finish - auc_start)
                                         + " ms. td: "+ (td_finish - td_start) + " ms.");*/
@@ -773,7 +776,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
             }
             fileWriter.flush();
             fileWriter.close();
-            System.out.println("Wrote this file: " + folderPath+filename);
+            //System.out.println("Wrote this file: " + folderPath+filename);
             /*
             //pivot table pilot
             String pivot_filename = "pivot_tbl_Score_Distribution_Meta_Data_exp_"+expIteration+"_starting_iteration_"+innerIteration+expID+".csv";
@@ -1475,14 +1478,18 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                         .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num);
                 //limit to top 10% of instances
                 int limitItems = (int)(evaluationResultsPerSetAndInteration.get(partitionIndex)
-                        .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num).size()*0.1);
+                        .getLatestEvaluationInfo().getScoreDistributions().size()*0.1);
                 //flatten top instances
                 for(Map.Entry<Double, List<Integer>> entry : topConfTree.entrySet()) {
-                    if (limitItems < 1){
-                        break;
+                    for(Integer candidate: entry.getValue()){
+                        if (limitItems < 1){
+                            break;
+                        }
+                        else{
+                            topInstancesCandidates.add(candidate);
+                            limitItems--;
+                        }
                     }
-                    topInstancesCandidates.addAll(entry.getValue());
-                    limitItems--;
                 }
                 Collections.shuffle(topInstancesCandidates);
                 //select top instances - 4 per partition per class

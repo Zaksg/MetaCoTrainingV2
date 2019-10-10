@@ -1,9 +1,6 @@
 package com.giladkz.verticalEnsemble;
 
-import com.giladkz.verticalEnsemble.CoTrainers.CoTrainMetaModelLoded;
-import com.giladkz.verticalEnsemble.CoTrainers.CoTrainerAbstract;
-import com.giladkz.verticalEnsemble.CoTrainers.CoTrainerOriginal;
-import com.giladkz.verticalEnsemble.CoTrainers.CoTrainingMetaLearning;
+import com.giladkz.verticalEnsemble.CoTrainers.*;
 import com.giladkz.verticalEnsemble.Data.Dataset;
 import com.giladkz.verticalEnsemble.Data.FoldsInfo;
 import com.giladkz.verticalEnsemble.Data.Loader;
@@ -20,6 +17,7 @@ import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffLoader;
+import weka.core.pmml.Array;
 
 import java.io.*;
 import java.sql.*;
@@ -34,73 +32,132 @@ public class App
 {
     public static void main( String[] args ) throws Exception
     {
+        //Configurations loading
         Properties properties = new Properties();
         InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties");
         properties.load(input);
-        Loader loader = new Loader();
 
-        buildDBTables(properties);
-        buildMetaLearnDBTables(properties);
-        //region Initialization
-        DiscretizerAbstract discretizer = new EqualRangeBinsDiscretizer(Integer.parseInt(properties.getProperty("numOfDiscretizationBins")));
-        FeatureSelectorInterface featuresSelector = new RandomParitionFeatureSelector();
-        ValueFunctionInterface valueFunction = new RandomValues();
-        CoTrainerAbstract coTrainerMetaModelGeneration = new CoTrainingMetaLearning();
-        CoTrainerAbstract coTrainer_original = new CoTrainerOriginal();
-        CoTrainerAbstract coTrainer_meta_model = new CoTrainMetaModelLoded();
-        List<Integer> sizeOfLabeledTrainingSet= Arrays.asList(100);
-        //endregion
-
-        File folder = new File(properties.getProperty("inputFilesDirectory"));
-        FoldsInfo foldsInfo = InitializeFoldsInfo();
-
-        File [] listOfFiles;
-        File[] listOfFilesTMP = folder.listFiles();
-        List<File> listFilesBeforeShuffle = Arrays.asList(listOfFilesTMP);
-        Collections.shuffle(listFilesBeforeShuffle);
-        listOfFiles = (File[])listFilesBeforeShuffle.toArray();
-
-
-        String[] toDoDatasets = {"german_credit.arff"};
-/*        String[] toDoDatasets = {"german_credit.arff", "ailerons.arff", "cardiography_new.arff"
-                , "contraceptive.arff", "delta_elevators.arff", "seismic-bumps.arff", "space_ga.arff"
-                , "cpu_act.arff", "puma32H.arff", "puma8NH.arff", "wind.arff", "bank-full.arff"};*/
-        if(args.length > 0){
-            toDoDatasets = args;
+        //RL initiation - for the python code - first step of the RL framework
+        /*run instruction for python: python <>.py init <dataset>.arff*/
+        if (Objects.equals(args[0], "init")){
+            String datasetFile = args[1];
+            CoTrainOneStep coTrainer_oneStep_init = new CoTrainOneStep();
+            coTrainer_oneStep_init.getDatasetObjFromFile(datasetFile, properties);
         }
-        //String[] doneDatasets = {"german_credit.arff"};
+        //RL iteration - for the python code - second and loop step of the RL framework
+        /*run instruction for python: python <>.py iteration datasetObjPath datasetPartitionsObjPath
+            labeledTrainingSetIndicesObjPath unlabeledTrainingSetIndicesObjPath
+            evaluationResultsPerSetAndInterationObjPath unifiedDatasetEvaulationResultsObjPath featureSetObjPath
+            batchId iteration expId*/
+        else if (Objects.equals(args[0], "iteration")){
+            CoTrainOneStep coTrainer_oneStep_iteration = new CoTrainOneStep();
+            String ds = args[1];
+            String ds_pt = args[2];
+            String labeled = args[3];
+            String unlabeled = args[4];
+            String eval = args[5];
+            String unifi = args[6];
+            String featues = args[7];
+            Integer batchId = Integer.parseInt(args[8]);
+            Integer iteration = Integer.parseInt(args[9]);
+            Integer expId = Integer.parseInt(args[10]);
+            coTrainer_oneStep_iteration.runOneStep(ds, ds_pt, labeled, unlabeled, eval, unifi, featues, batchId, iteration, expId, properties);
+        }
+        //Meta model / original co train framework
+        else {
+            Loader loader = new Loader();
+            buildDBTables(properties);
+            buildMetaLearnDBTables(properties);
+            //region Initialization
+            DiscretizerAbstract discretizer = new EqualRangeBinsDiscretizer(Integer.parseInt(properties.getProperty("numOfDiscretizationBins")));
+            FeatureSelectorInterface featuresSelector = new RandomParitionFeatureSelector();
+            ValueFunctionInterface valueFunction = new RandomValues();
+            CoTrainerAbstract coTrainerMetaModelGeneration = new CoTrainingMetaLearning();
+            CoTrainerAbstract coTrainer_original = new CoTrainerOriginal();
+            CoTrainerAbstract coTrainer_meta_model = new CoTrainMetaModelLoded();
+            List<Integer> sizeOfLabeledTrainingSet= Arrays.asList(Integer.parseInt(properties.getProperty("initialLabeledGroup")));
+            //endregion
 
-        //double auc_check = checkAucClac();
+            File folder = new File(properties.getProperty("inputFilesDirectory"));
+            FoldsInfo foldsInfo = InitializeFoldsInfo();
 
-        for (File file : listOfFiles) {
-            if (file.isFile() && file.getName().endsWith(".arff") /*&& !Arrays.asList(doneDatasets).contains(file.getName())*/
-                    && Arrays.asList(toDoDatasets).contains(file.getName())) {
+            File[] listOfFiles;
+            File[] listOfFilesTMP = folder.listFiles();
+            List<File> listFilesBeforeShuffle = Arrays.asList(listOfFilesTMP);
+            Collections.shuffle(listFilesBeforeShuffle);
+            listOfFiles = (File[]) listFilesBeforeShuffle.toArray();
 
-                for (int numOfLabeledInstances : sizeOfLabeledTrainingSet) {
-                    int numOfRuns = Integer.parseInt(properties.getProperty("numOfrandomSeeds"));
-                    ArrayList<Runnable> tasks = new ArrayList<>();
-                    ExecutorService executorService = Executors.newFixedThreadPool(numOfRuns);
-                    ArrayList<ArrayList<Integer>> exp_ids = getExpIds(numOfRuns, file.getName(),coTrainer_original.toString(),featuresSelector.toString(),valueFunction.toString(), discretizer.toString(), Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")),numOfLabeledInstances, properties);
-                    //runDatasetSeed(0, file, numOfLabeledInstances, coTrainer_original, coTrainer_meta_model, discretizer, featuresSelector, valueFunction, loader, foldsInfo, properties);
 
-                    for (int task_i = 0; task_i < numOfRuns; task_i++) {
-                        final int taks_index = task_i;
-                        Runnable task_temp = () -> {
-                            try {
-                                runDatasetSeed(taks_index, file, numOfLabeledInstances, coTrainer_original
-                                        , coTrainer_meta_model, coTrainerMetaModelGeneration
-                                        , discretizer, featuresSelector, valueFunction, loader, foldsInfo
-                                        , properties, exp_ids.get(taks_index).get(0), exp_ids.get(taks_index).get(1));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        };
-                        tasks.add(task_temp);
+            //String[] toDoDatasets = {"cardiography_new.arff"/*, "wind.arff"*/};
+            String[] toDoDatasets = {
+                    "ailerons.arff"
+                    , "bank-full.arff"
+                    , "cardiography_new.arff"
+                    , "contraceptive.arff"
+                    , "cpu_act.arff"
+                    //, "dataset_38_sick.arff"
+                    , "delta_elevators.arff"
+                    , "diabetes.arff"
+                    , "german_credit.arff"
+                    , "ionosphere.arff"
+                    , "kc2.arff"
+                    //, "kr-vs-kp.arff"
+                    , "mammography.arff"
+                    //, "monks.arff"
+                    , "page-blocks_new.arff"
+                    , "php0iVrYT.arff"
+                    , "php7KLval.arff"
+                    , "php8Mz7BG.arff"
+                    , "php9xWOpn.arff"
+                    , "php50jXam.arff"
+                    , "phpelnJ6y.arff"
+                    , "phpOJxGL9.arff"
+                    , "puma8NH.arff"
+                    , "puma32H.arff"
+                    , "seismic-bumps.arff"
+                    , "space_ga.arff"
+                    , "spambase.arff"
+                    //, "tic-tac-toe.arff"
+                    //, "vote.arff"
+                    , "wind.arff"};
+            if (args.length > 0) {
+                toDoDatasets = args;
+            }
+            //String[] doneDatasets = {"german_credit.arff"};
+
+            //double auc_check = checkAucClac();
+
+            for (File file : listOfFiles) {
+                if (file.isFile() && file.getName().endsWith(".arff") /*&& !Arrays.asList(doneDatasets).contains(file.getName())*/
+                        && Arrays.asList(toDoDatasets).contains(file.getName())) {
+
+                    for (int numOfLabeledInstances : sizeOfLabeledTrainingSet) {
+                        int numOfRuns = Integer.parseInt(properties.getProperty("numOfrandomSeeds"));
+                        ArrayList<Runnable> tasks = new ArrayList<>();
+                        int numThreads = Math.max(numOfRuns, 15);
+                        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+                        ArrayList<ArrayList<Integer>> exp_ids = getExpIds(numOfRuns, file.getName(), coTrainer_original.toString(), featuresSelector.toString(), valueFunction.toString(), discretizer.toString(), Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), numOfLabeledInstances, properties);
+                        //runDatasetSeed(0, file, numOfLabeledInstances, coTrainer_original, coTrainer_meta_model, discretizer, featuresSelector, valueFunction, loader, foldsInfo, properties);
+
+                        for (int task_i = 0; task_i < numOfRuns; task_i++) {
+                            final int taks_index = task_i;
+                            Runnable task_temp = () -> {
+                                try {
+                                    runDatasetSeed(taks_index, file, numOfLabeledInstances, coTrainer_original
+                                            , coTrainer_meta_model, coTrainerMetaModelGeneration
+                                            , discretizer, featuresSelector, valueFunction, loader, foldsInfo
+                                            , properties, exp_ids.get(taks_index).get(0), exp_ids.get(taks_index).get(1));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            };
+                            tasks.add(task_temp);
+                        }
+                        for (int task_i = 0; task_i < numOfRuns; task_i++) {
+                            executorService.submit(tasks.get(task_i));
+                        }
+                        executorService.shutdownNow();
                     }
-                    for (int task_i = 0; task_i < numOfRuns; task_i++) {
-                        executorService.submit(tasks.get(task_i));
-                    }
-                    executorService.shutdownNow();
                 }
             }
         }
@@ -131,23 +188,57 @@ public class App
             //let the co-training begin
             //a) generate the feature sets
             HashMap<Integer, List<Integer>> featureSets = featuresSelector.Get_Feature_Sets(dataset,discretizer,valueFunction,1,2,1000,1,0,dataset.getName(),false, i);
+            //writeFeatureSelectionToFile(featureSets, dataset, i, properties);
 
-            //original
-            Dataset finalDataset_otiginal = coTrainer_original.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);
+            //a) generate the labeled sets
+            List<Integer> labeledTrainingSet = coTrainer_original.getLabeledTrainingInstancesIndices(dataset,numOfLabeledInstances,true,i);
 
             //meta model generation
-/*            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i);*/
+            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i, labeledTrainingSet);
+
+            /*
+            //original
+            Dataset finalDataset_otiginal = coTrainer_original.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i, labeledTrainingSet);
+
+
+            System.out.println("Original model done with exp id: "+expID_original+". Start meta model with exp id: "+ expID_meta_model);
 
             //meta model selection
-            System.out.println("Original model done with exp id: "+expID_original+". Start meta model with exp id: "+ expID_meta_model);
-            Dataset finalDataset_meta_model = coTrainer_meta_model.Train_Classifiers(featureSets,dataset_meta_model,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset_meta_model.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_meta_model,"test",0,0,false, i);
+            Dataset finalDataset_meta_model = coTrainer_meta_model.Train_Classifiers(featureSets,dataset_meta_model,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset_meta_model.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_meta_model,"test",0,0,false, i, labeledTrainingSet);
+            */
 
             Date experimentEndDate = new Date();
             System.out.println(experimentEndDate.toString() + " Experiment ended");
         }catch (Exception e){
             e.printStackTrace();
+            PrintWriter pw = null;
+            try {
+                pw = new PrintWriter(new File("java_exception_trace.txt"));
+            } catch (FileNotFoundException e1) {
+                e1.printStackTrace();
+            }
+            e.printStackTrace(pw);
+            pw.close();
             System.out.println("Failed running dataset: " + file.getName());
         }
+    }
+
+    private static void writeFeatureSelectionToFile(HashMap<Integer, List<Integer>> featureSets, Dataset dataset, int i, Properties properties) throws Exception {
+        String filename = properties.getProperty("tempDirectory")+dataset.getName()+"_seed_"+i+"_feature_partition.txt";
+        FileWriter fileWriter = new FileWriter(filename);
+        String fileHeader = "partition,featureNum\n";
+        fileWriter.append(fileHeader);
+
+        for (Integer partition: featureSets.keySet()) {
+            for (Integer featureNum: featureSets.get(partition)){
+                fileWriter.append(String.valueOf(partition));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(featureNum));
+                fileWriter.append("\n");
+            }
+        }
+        fileWriter.flush();
+        fileWriter.close();
     }
 
     private static double checkAucClac() throws FileNotFoundException {
@@ -415,7 +506,7 @@ public class App
      * @return
      * @throws Exception
      */
-    private static FoldsInfo InitializeFoldsInfo() throws Exception {
+    public static FoldsInfo InitializeFoldsInfo() throws Exception {
         FoldsInfo fi = new FoldsInfo(1,0,1,0.7,-1,0,0,0.3,-1,true, FoldsInfo.foldType.Test);
         return fi;
     }

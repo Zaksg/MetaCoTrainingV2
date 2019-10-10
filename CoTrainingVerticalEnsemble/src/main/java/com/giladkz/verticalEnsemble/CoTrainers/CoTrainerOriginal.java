@@ -2,11 +2,15 @@ package com.giladkz.verticalEnsemble.CoTrainers;
 
 import com.giladkz.verticalEnsemble.Data.*;
 import com.giladkz.verticalEnsemble.Discretizers.DiscretizerAbstract;
-import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import weka.core.Instances;
+import weka.core.converters.ArffSaver;
 
 public class CoTrainerOriginal extends CoTrainerAbstract {
     private Properties properties;
@@ -15,7 +19,7 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
 
         properties = new Properties();
         InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -31,14 +35,23 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
 
         /* Randomly select the labeled instances from the training set. The remaining ones will be used as the unlabeled.
          * It is important that we use a fixed random seed for repeatability */
-        List<Integer> labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        List<Integer> labeledTrainingSetIndices;
+        if (labeledTrainingSet.size() > 0 ){
+            labeledTrainingSetIndices = new ArrayList<>(labeledTrainingSet);
+        }else{
+            labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        }
 
-        /* If the unlabeled training set is larger than the specified parameter, we will sample X instances to
-         * serve as the pool. TODO: replenish the pool upon sampling (although given the sizes it's not such a big deal */
+
         List<Integer> unlabeledTrainingSetIndices = new ArrayList<>();
         Fold trainingFold = dataset.getTrainingFolds().get(0); //There should only be one training fold in this type of project
         if (trainingFold.getIndices().size()-initial_number_of_labled_samples > initial_unlabeled_set_size) {
-            //ToDo: add a random sampling function
+            for (int index : trainingFold.getIndices()) {
+                if (!labeledTrainingSetIndices.contains(index) && unlabeledTrainingSetIndices.size() < initial_unlabeled_set_size
+                        && new Random().nextInt(100)< 96) {
+                    unlabeledTrainingSetIndices.add(index);
+                }
+            }
         }
         else {
             for (int index : trainingFold.getIndices()) {
@@ -63,6 +76,11 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
             //step 1 - train the classifiers on the labeled training set and run on the unlabeled training set
             System.out.println("labaled: " + labeledTrainingSetIndices.size() + ";  unlabeled: " + unlabeledTrainingSetIndices.size() );
 
+            Date expDate = new Date();
+            Loader loader = new Loader();
+
+
+
             for (int partitionIndex : feature_sets.keySet()) {
                 EvaluationInfo evaluationResults = runClassifier(properties.getProperty("classifier"),
                         datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices),
@@ -73,7 +91,30 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
                     evaluationResultsPerSetAndInteration.put(partitionIndex, new EvaluationPerIteraion());
                 }
                 evaluationResultsPerSetAndInteration.get(partitionIndex).addEvaluationInfo(evaluationResults, i);
+
+                //write unlabeled set
+                /*
+                for(int type=0; type < 2; type++){
+                    if (type==0){
+                        String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_unlabeled_original_co_train.arff";
+                        Files.deleteIfExists(Paths.get(tempFilePath));
+                        ArffSaver s= new ArffSaver();
+                        s.setInstances(datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices));
+                        s.setFile(new File(tempFilePath));
+                        s.writeBatch();
+                    }
+                    else {
+                        String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_labeled_original_co_train.arff";
+                        Files.deleteIfExists(Paths.get(tempFilePath));
+                        ArffSaver s= new ArffSaver();
+                        s.setInstances(datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices));
+                        s.setFile(new File(tempFilePath));
+                        s.writeBatch();
+                    }
+                }*/
             }
+            //Files.write( Paths.get(properties.getProperty("tempDirectory")+dataset.getName()+"_iteration_"+i+".txt")
+            //        , ()->feature_sets.entrySet().stream().<CharSequence>map(e->e.getKey() + "," + e.getValue()).iterator());
 
             //step 2 - get the indices of the items we want to label (separately for each class)
             HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = new HashMap<>();

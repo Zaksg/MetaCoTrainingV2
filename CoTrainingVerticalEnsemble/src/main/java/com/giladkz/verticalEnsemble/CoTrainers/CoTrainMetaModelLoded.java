@@ -5,7 +5,6 @@ import com.giladkz.verticalEnsemble.MetaLearning.InstanceAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.InstancesBatchAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributesTdBatch;
-import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
@@ -38,7 +37,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             , int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration
             , String original_arff_file, int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer
             , int exp_id, String arff, int iteration, double weight_for_log, boolean use_active_learning
-            , int random_seed) throws Exception {
+            , int random_seed, List<Integer> labeledTrainingSet) throws Exception {
 
         /*
         * This set is meta features analyzes the scores assigned to the unlabeled training set at each iteration.
@@ -68,7 +67,12 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
          * Randomly select the labeled instances from the training set. The remaining ones will be used as the unlabeled.
          * It is important that we use a fixed random seed for repeatability
          * */
-        List<Integer> labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        List<Integer> labeledTrainingSetIndices;
+        if (labeledTrainingSet.size() > 0 ){
+            labeledTrainingSetIndices = new ArrayList<>(labeledTrainingSet);
+        }else{
+            labeledTrainingSetIndices = getLabeledTrainingInstancesIndices(dataset,initial_number_of_labled_samples,true,random_seed);
+        }
 
         List<Integer> unlabeledTrainingSetIndices = new ArrayList<>();
         Fold trainingFold = dataset.getTrainingFolds().get(0); //There should only be one training fold in this type of project
@@ -127,6 +131,26 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                     evaluationResultsPerSetAndInteration.put(partitionIndex, new EvaluationPerIteraion());
                 }
                 evaluationResultsPerSetAndInteration.get(partitionIndex).addEvaluationInfo(evaluationResults, i);
+                //write unlabeled set
+                /*
+                for(int type=0; type < 2; type++){
+                    if (type==0){
+                        String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_unlabeled_meta_co_train.arff";
+                        Files.deleteIfExists(Paths.get(tempFilePath));
+                        ArffSaver s= new ArffSaver();
+                        s.setInstances(datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices));
+                        s.setFile(new File(tempFilePath));
+                        s.writeBatch();
+                    }
+                    else {
+                        String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_labeled_meta_co_train.arff";
+                        Files.deleteIfExists(Paths.get(tempFilePath));
+                        ArffSaver s= new ArffSaver();
+                        s.setInstances(datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices));
+                        s.setFile(new File(tempFilePath));
+                        s.writeBatch();
+                    }
+                }*/
             }
 
             //now we run the classifier trained on the unified set
@@ -243,6 +267,8 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                                         , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
                                         , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
                                         , dataset.getTestFolds().get(0), targetClassIndex, i, exp_id, batchIndex, properties);
+                                //ToDo: use this line:
+                                //writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                             }
                             topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                         }
@@ -645,15 +671,23 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                 TreeMap<Double, List<Integer>> topConfTree = evaluationResultsPerSetAndInteration.get(partitionIndex)
                         .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num);
                 //limit to top 10% of instances
+                //int limitItems_group = (int)(evaluationResultsPerSetAndInteration.get(partitionIndex).getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num).size()*0.1);
                 int limitItems = (int)(evaluationResultsPerSetAndInteration.get(partitionIndex)
-                        .getLatestEvaluationInfo().getTopConfidenceInstancesPerClass(class_num).size()*0.1);
+                        .getLatestEvaluationInfo().getScoreDistributions().size()*0.1);
                 //flatten top instances
                 for(Map.Entry<Double, List<Integer>> entry : topConfTree.entrySet()) {
-                    if (limitItems < 1){
-                        break;
+
+                    for(Integer candidate: entry.getValue()){
+                        if (limitItems < 1){
+                            break;
+                        }
+                        else{
+                            topInstancesCandidates.add(candidate);
+                            limitItems--;
+                        }
                     }
-                    topInstancesCandidates.addAll(entry.getValue());
-                    limitItems--;
+                    //topInstancesCandidates.addAll(entry.getValue());
+                    //limitItems--;
                 }
                 Collections.shuffle(topInstancesCandidates);
                 //select top instances - 4 per partition per class

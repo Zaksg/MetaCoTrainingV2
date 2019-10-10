@@ -5,7 +5,9 @@ import com.giladkz.verticalEnsemble.Discretizers.DiscretizerAbstract;
 import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import weka.classifiers.Classifier;
+import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.evaluation.Evaluation;
+import weka.classifiers.functions.Logistic;
 import weka.classifiers.functions.SMO;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
@@ -25,7 +27,7 @@ public abstract class CoTrainerAbstract {
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
         throw new NotImplementedException();
     }
 
@@ -187,6 +189,12 @@ public abstract class CoTrainerAbstract {
             case "RandomForest":
                 RandomForest randomForest = new RandomForest();
                 return randomForest;
+            case "Logistic":
+                Logistic logistic= new Logistic();
+                return logistic;
+            case "NaiveBayes":
+                NaiveBayes nb = new NaiveBayes();
+                return nb;
             default:
                 throw new Exception("unknown classifier");
 

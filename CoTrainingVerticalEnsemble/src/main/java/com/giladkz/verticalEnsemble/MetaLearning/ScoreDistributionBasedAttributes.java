@@ -953,57 +953,61 @@ public class ScoreDistributionBasedAttributes {
             }
 
             for (ColumnInfo ci : unlabeledSamplesDataset.getAllColumns(false)) {
-                if (ci.getColumn().getType() == Column.columnType.Numeric) {
-                /* We perform the T-Test for all the numeric attributes of the data.
-                * It is important to note that we can't use paired-t test because the samples are not paired.*/
-                    double[] belowThresholdValues = new double[scoreDistributions.keySet().size()-indicesOfIndicesOverTheThreshold.size()];
-                    int belowThresholdCounter = 0;
-                    double[] aboveThresholdValues = new double[indicesOfIndicesOverTheThreshold.size()];
-                    int aboveThresholdCounter = 0;
-                    double[] values = (double[])ci.getColumn().getValues();
-                    for (int i=0; i<values.length; i++) {
-                        if (indicesOfIndicesOverTheThreshold.containsKey(i)) {
-                            aboveThresholdValues[aboveThresholdCounter] = values[i];
-                            aboveThresholdCounter++;
+                try{
+                    if (ci.getColumn().getType() == Column.columnType.Numeric) {
+                    /* We perform the T-Test for all the numeric attributes of the data.
+                    * It is important to note that we can't use paired-t test because the samples are not paired.*/
+                        double[] belowThresholdValues = new double[scoreDistributions.keySet().size()-indicesOfIndicesOverTheThreshold.size()];
+                        int belowThresholdCounter = 0;
+                        double[] aboveThresholdValues = new double[indicesOfIndicesOverTheThreshold.size()];
+                        int aboveThresholdCounter = 0;
+                        double[] values = (double[])ci.getColumn().getValues();
+                        for (int i=0; i<values.length; i++) {
+                            if (indicesOfIndicesOverTheThreshold.containsKey(i)) {
+                                aboveThresholdValues[aboveThresholdCounter] = values[i];
+                                aboveThresholdCounter++;
+                            }
+                            else {
+                                belowThresholdValues[belowThresholdCounter] = values[i];
+                                belowThresholdCounter++;
+                            }
                         }
-                        else {
-                            belowThresholdValues[belowThresholdCounter] = values[i];
-                            belowThresholdCounter++;
+                        if (aboveThresholdCounter > 1){
+                            TTest tTest = new TTest();
+                            double tTestStatistic = tTest.t(aboveThresholdValues,belowThresholdValues);
+                            allFeatureCorrelationStatsByThreshold.get(threshold).addValue(tTestStatistic);
+                            numericFeatureCorrelationStatsByThreshold.get(threshold).addValue(tTestStatistic);
                         }
-                    }
-                    if (aboveThresholdCounter > 1){
-                        TTest tTest = new TTest();
-                        double tTestStatistic = tTest.t(aboveThresholdValues,belowThresholdValues);
-                        allFeatureCorrelationStatsByThreshold.get(threshold).addValue(tTestStatistic);
-                        numericFeatureCorrelationStatsByThreshold.get(threshold).addValue(tTestStatistic);
-                    }
 
-                }
-                if (ci.getColumn().getType() == Column.columnType.Discrete) {
-                    int[] belowThresholdValues = new int[scoreDistributions.keySet().size()-indicesOfIndicesOverTheThreshold.size()];
-                    int belowThresholdCounter = 0;
-                    int[] aboveThresholdValues = new int[indicesOfIndicesOverTheThreshold.size()];
-                    int aboveThresholdCounter = 0;
-                    int[] values = (int[])ci.getColumn().getValues();
-
-                    for (int i=0; i<values.length; i++) {
-                        if (indicesOfIndicesOverTheThreshold.containsKey(i)) {
-                            aboveThresholdValues[aboveThresholdCounter] = values[i];
-                            aboveThresholdCounter++;
-                        }
-                        else {
-                            belowThresholdValues[belowThresholdCounter] = values[i];
-                            belowThresholdCounter++;
-                        }
                     }
+                    if (ci.getColumn().getType() == Column.columnType.Discrete) {
+                        int[] belowThresholdValues = new int[scoreDistributions.keySet().size()-indicesOfIndicesOverTheThreshold.size()];
+                        int belowThresholdCounter = 0;
+                        int[] aboveThresholdValues = new int[indicesOfIndicesOverTheThreshold.size()];
+                        int aboveThresholdCounter = 0;
+                        int[] values = (int[])ci.getColumn().getValues();
 
-                    StatisticOperations so = new StatisticOperations();
-                    int numOfDiscreteValues = ((DiscreteColumn)ci.getColumn()).getNumOfPossibleValues();
-                    long[][] intersectionMatrix = so.generateChiSuareIntersectionMatrix(aboveThresholdValues, numOfDiscreteValues, belowThresholdValues, numOfDiscreteValues);
-                    ChiSquareTest chiSquareTest = new ChiSquareTest();
-                    double chiSquareStatistic = chiSquareTest.chiSquareTest(intersectionMatrix);
-                    allFeatureCorrelationStatsByThreshold.get(threshold).addValue(chiSquareStatistic);
-                    discreteFeatureCorrelationStatsByThreshold.get(threshold).addValue(chiSquareStatistic);
+                        for (int i=0; i<values.length; i++) {
+                            if (indicesOfIndicesOverTheThreshold.containsKey(i)) {
+                                aboveThresholdValues[aboveThresholdCounter] = values[i];
+                                aboveThresholdCounter++;
+                            }
+                            else {
+                                belowThresholdValues[belowThresholdCounter] = values[i];
+                                belowThresholdCounter++;
+                            }
+                        }
+
+                        StatisticOperations so = new StatisticOperations();
+                        int numOfDiscreteValues = ((DiscreteColumn)ci.getColumn()).getNumOfPossibleValues();
+                        long[][] intersectionMatrix = so.generateChiSuareIntersectionMatrix(aboveThresholdValues, numOfDiscreteValues, belowThresholdValues, numOfDiscreteValues);
+                        ChiSquareTest chiSquareTest = new ChiSquareTest();
+                        double chiSquareStatistic = chiSquareTest.chiSquareTest(intersectionMatrix);
+                        allFeatureCorrelationStatsByThreshold.get(threshold).addValue(chiSquareStatistic);
+                        discreteFeatureCorrelationStatsByThreshold.get(threshold).addValue(chiSquareStatistic);
+                    }
+                } catch (Exception e){
+                    continue;
                 }
             }
         }
