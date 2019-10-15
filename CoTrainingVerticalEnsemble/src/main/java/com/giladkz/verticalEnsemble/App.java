@@ -2,6 +2,7 @@ package com.giladkz.verticalEnsemble;
 
 import com.giladkz.verticalEnsemble.CoTrainers.*;
 import com.giladkz.verticalEnsemble.Data.Dataset;
+import com.giladkz.verticalEnsemble.Data.EvaluationPerIteraion;
 import com.giladkz.verticalEnsemble.Data.FoldsInfo;
 import com.giladkz.verticalEnsemble.Data.Loader;
 import com.giladkz.verticalEnsemble.Discretizers.DiscretizerAbstract;
@@ -38,30 +39,40 @@ public class App
         properties.load(input);
 
         //RL initiation - for the python code - first step of the RL framework
-        /*run instruction for python: python <>.py init <dataset>.arff*/
+        /*test zone*/
+        /*
+        String folder_2 = properties.getProperty("modelFiles");
+        FileInputStream fi_evaluationResultsPerSetAndInteration = new FileInputStream(new File(folder_2+"145475_german_credit_evaluationResultsPerSetAndInteration.txt"));
+        ObjectInputStream oi_evaluationResultsPerSetAndInteration = new ObjectInputStream(fi_evaluationResultsPerSetAndInteration);
+        TreeMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInterationTree = new TreeMap<>((HashMap<Integer, EvaluationPerIteraion>) oi_evaluationResultsPerSetAndInteration.readObject());
+        evaluationResultsPerSetAndInterationTree.size();
+        */
+        /*run instruction for python: python <>.py init <dataset>.arff filePrefix*/
         if (Objects.equals(args[0], "init")){
             String datasetFile = args[1];
+            String filePrefix = args[2];
             CoTrainOneStep coTrainer_oneStep_init = new CoTrainOneStep();
-            coTrainer_oneStep_init.getDatasetObjFromFile(datasetFile, properties);
+            coTrainer_oneStep_init.getDatasetObjFromFile(datasetFile, filePrefix, properties);
         }
         //RL iteration - for the python code - second and loop step of the RL framework
-        /*run instruction for python: python <>.py iteration datasetObjPath datasetPartitionsObjPath
-            labeledTrainingSetIndicesObjPath unlabeledTrainingSetIndicesObjPath
-            evaluationResultsPerSetAndInterationObjPath unifiedDatasetEvaulationResultsObjPath featureSetObjPath
+        /*run instruction for python: python <>.py iteration prefix
             batchId iteration expId*/
         else if (Objects.equals(args[0], "iteration")){
             CoTrainOneStep coTrainer_oneStep_iteration = new CoTrainOneStep();
-            String ds = args[1];
-            String ds_pt = args[2];
-            String labeled = args[3];
-            String unlabeled = args[4];
-            String eval = args[5];
-            String unifi = args[6];
-            String featues = args[7];
-            Integer batchId = Integer.parseInt(args[8]);
-            Integer iteration = Integer.parseInt(args[9]);
-            Integer expId = Integer.parseInt(args[10]);
-            coTrainer_oneStep_iteration.runOneStep(ds, ds_pt, labeled, unlabeled, eval, unifi, featues, batchId, iteration, expId, properties);
+            String filePrefix = args[1];
+            String ds = filePrefix + "dataset.txt";
+            String ds_pt = filePrefix + "datasetPartitions.txt";
+            String labeled = filePrefix + "labeledSet.txt";
+            String unlabeled = filePrefix + "unlabeledSet.txt";
+            String eval = filePrefix + "evaluationResultsPerSetAndInteration.txt";
+            String unifi = filePrefix + "unifiedDatasetEvaulationResults.txt";
+            String featues = filePrefix + "featureSet.txt";
+
+            Integer batchId = Integer.parseInt(args[2]);
+            Integer iteration = Integer.parseInt(args[3]);
+            Integer expId = Integer.parseInt(args[4]);
+
+            coTrainer_oneStep_iteration.runOneStep(ds, ds_pt, labeled, unlabeled, eval, unifi, featues, batchId, iteration, expId, filePrefix, properties);
         }
         //Meta model / original co train framework
         else {
@@ -194,9 +205,9 @@ public class App
             List<Integer> labeledTrainingSet = coTrainer_original.getLabeledTrainingInstancesIndices(dataset,numOfLabeledInstances,true,i);
 
             //meta model generation
-            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i, labeledTrainingSet);
-
             /*
+            Dataset finalDataset_otiginal = coTrainerMetaModelGeneration.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i, labeledTrainingSet);
+*/
             //original
             Dataset finalDataset_otiginal = coTrainer_original.Train_Classifiers(featureSets,dataset,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_original,"test",0,0,false, i, labeledTrainingSet);
 
@@ -205,7 +216,6 @@ public class App
 
             //meta model selection
             Dataset finalDataset_meta_model = coTrainer_meta_model.Train_Classifiers(featureSets,dataset_meta_model,numOfLabeledInstances,Integer.parseInt(properties.getProperty("numOfCoTrainingIterations")), getNumberOfNewInstancesPerClassPerTrainingIteration(dataset_meta_model.getNumOfClasses(), properties),file.getAbsolutePath(),30000, 1, discretizer, expID_meta_model,"test",0,0,false, i, labeledTrainingSet);
-            */
 
             Date experimentEndDate = new Date();
             System.out.println(experimentEndDate.toString() + " Experiment ended");

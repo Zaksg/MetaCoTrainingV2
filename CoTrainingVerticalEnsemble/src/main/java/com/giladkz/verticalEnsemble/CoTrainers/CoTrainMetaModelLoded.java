@@ -267,8 +267,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                                         , assignedLabelsOriginalIndex, labeledTrainingSetIndices, unlabeledTrainingSetIndices
                                         , evaluationResultsPerSetAndInterationTree, unifiedDatasetEvaulationResults
                                         , dataset.getTestFolds().get(0), targetClassIndex, i, exp_id, batchIndex, properties);
-                                //ToDo: use this line:
-                                //writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
+                                writeBatchMetaDataInGroup.put(tdScoreDistributionCurrentIteration, batchInfoToWrite);
                             }
                             topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                         }

@@ -1,10 +1,11 @@
 package com.giladkz.verticalEnsemble.Data;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
-public class EvaluationPerIteraion {
+public class EvaluationPerIteraion implements Serializable{
 
     TreeMap<Integer, EvaluationInfo> evaluationPerIterationMap = new TreeMap<>();
 

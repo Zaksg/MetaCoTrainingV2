@@ -7,13 +7,14 @@ import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Created by giladkatz on 11/02/2016.
  */
-public class Dataset {
+public class Dataset implements Serializable{
     private List<ColumnInfo> columns;
     private int numOfInstancesPerColumn;
 

@@ -3,9 +3,10 @@ package com.giladkz.verticalEnsemble.Data;
 import weka.classifiers.evaluation.Evaluation;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.*;
 
-public class EvaluationInfo {
+public class EvaluationInfo implements Serializable{
     private Properties properties;
 
     private Evaluation evaluation;

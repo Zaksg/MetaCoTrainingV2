@@ -1,5 +1,6 @@
 package com.giladkz.verticalEnsemble.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.stream.IntStream;
 /**
  * Created by giladkatz on 16/02/2016.
  */
-public class Fold {
+public class Fold implements Serializable{
     private List<Integer> indices;
     private int[] numInstancesPerClass;
     private List<Integer>[] indicesByClass;
