@@ -144,7 +144,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                 }
                 evaluationResultsPerSetAndInteration.get(partitionIndex).addEvaluationInfo(evaluationResults, i);
                 //write unlabeled set
-                for(int type=0; type < 2; type++){
+                /*for(int type=0; type < 2; type++){
                     if (type==0){
                         String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_unlabeled_meta_co_train.arff";
                         Files.deleteIfExists(Paths.get(tempFilePath));
@@ -161,7 +161,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                         s.setFile(new File(tempFilePath));
                         s.writeBatch();
                     }
-                }
+                }*/
             }
 
             //now we run the classifier trained on the unified set
@@ -1456,7 +1456,6 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
             , Properties properties) throws Exception {
         //clone the original dataset
         //Dataset clonedDataset = dataset.replicateDataset();
-        //Dataset clonedDataset = dataset.replicateDatasetDeep();
 
         List<Integer> clonedlabeLedTrainingSetIndices = new ArrayList<>(labeledTrainingSetIndices);
         //add batch instances to the cloned dataset

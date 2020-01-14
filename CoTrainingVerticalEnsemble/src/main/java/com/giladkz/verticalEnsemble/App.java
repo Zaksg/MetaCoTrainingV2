@@ -97,10 +97,10 @@ public class App
             List<File> listFilesBeforeShuffle = Arrays.asList(listOfFilesTMP);
             Collections.shuffle(listFilesBeforeShuffle);
             listOfFiles = (File[]) listFilesBeforeShuffle.toArray();
-            //List<String> labeledTrainingSet = Arrays.asList("100", "108", "116", "130", "140", "160", "180", "200", "250");
-            List<String> labeledTrainingSet = Arrays.asList("100");
-//            List<String> addedBatches = Arrays.asList("1", "3", "5", "10");
-            List<String> addedBatches = Arrays.asList("0");
+            List<String> labeledTrainingSet = Arrays.asList("100", "108", "116", "130", "140", "160", "180", "200", "250");
+//            List<String> labeledTrainingSet = Arrays.asList("100");
+            List<String> addedBatches = Arrays.asList("1", "3", "5", "10");
+//            List<String> addedBatches = Arrays.asList("0");
 
 
             String[] toDoDatasets = {"german_credit.arff"};
