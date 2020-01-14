@@ -18,4 +18,6 @@ public interface Column {
 
     Object getValues();
 
+    void setAllValues(Object obj);
+
 }

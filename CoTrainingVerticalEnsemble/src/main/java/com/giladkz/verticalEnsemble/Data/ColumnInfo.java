@@ -1,6 +1,7 @@
 package com.giladkz.verticalEnsemble.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Python" name="Python">
+      <configuration sdkName="Python 3.6.8 virtualenv at C:\Users\guyz\Documents\CoTrainingVerticalEnsemble\meta_model\venv" />
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
@@ -31,5 +36,6 @@
     <orderEntry type="library" name="mapdb-1.0.9" level="project" />
     <orderEntry type="library" name="slf4j-api-1.7.25" level="project" />
     <orderEntry type="library" name="weka" level="project" />
+    <orderEntry type="library" name="Python 3.6.8 virtualenv at C:\Users\guyz\Documents\CoTrainingVerticalEnsemble\meta_model\venv interpreter library" level="application" />
   </component>
 </module>

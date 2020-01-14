@@ -1078,6 +1078,51 @@ public class Dataset implements Serializable{
         return dataset;
     }
 
+    /**
+     * Creates an exact replica of the dataset, except for the fact that it creates a new List of columns
+     * instead of referencing to the existing list. This enables the addition of columns to this object without
+     * adding them to the original.
+     * @return
+     */
+    public Dataset replicateDatasetDeep() {
+        Dataset dataset = new Dataset();
+
+        //We need to create a new columns object and just reference the same objects
+        dataset.columns = new ArrayList<>();
+        for (ColumnInfo ci: this.columns) {
+            dataset.columns.add(ci);
+        }
+
+        dataset.numOfInstancesPerColumn = this.numOfInstancesPerColumn;
+        dataset.indices = new ArrayList<>(this.indices);
+        dataset.folds =  new ArrayList<>(this.folds);
+        dataset.indicesOfTrainingFolds = new ArrayList<>(this.indicesOfTrainingFolds);
+        dataset.indicesOfTestFolds = new ArrayList<>(this.indicesOfTestFolds);
+        dataset.numOfTrainingInstancesPerClass = new int[this.numOfTrainingInstancesPerClass.length];
+        System.arraycopy( this.numOfTrainingInstancesPerClass
+                , 0, dataset.numOfTrainingInstancesPerClass
+                , 0, this.numOfTrainingInstancesPerClass.length);
+        dataset.numOfTestInstancesPerClass = new int[this.numOfTestInstancesPerClass.length];
+        System.arraycopy( this.numOfTestInstancesPerClass, 0, dataset.numOfTestInstancesPerClass
+                , 0, this.numOfTestInstancesPerClass.length );
+        dataset.numOfTrainingRows = this.numOfTrainingRows;
+        dataset.numOfTestRows = this.numOfTestRows;
+        dataset.targetColumnIndex = this.targetColumnIndex;
+        dataset.name = this.name;
+        dataset.distinctValColumns = new ArrayList<>(this.distinctValColumns);
+        dataset.trainingIndicesByClass = new List[this.trainingIndicesByClass.length];
+        System.arraycopy( this.trainingIndicesByClass, 0, dataset.trainingIndicesByClass
+                , 0, this.trainingIndicesByClass.length );
+        dataset.trainFoldDistinctValMappings = new HashMap<>(this.trainFoldDistinctValMappings);
+        dataset.testFoldDistinctValMappings = new HashMap<>(this.testFoldDistinctValMappings);
+        dataset.trainFoldsDistinctValRepresentatives = new ArrayList<>(this.trainFoldsDistinctValRepresentatives);
+        dataset.testFoldsDistinctValRepresentatives = new ArrayList<>(this.testFoldsDistinctValRepresentatives);
+        dataset.distinctValueCompliantColumns = new ArrayList<>(this.distinctValueCompliantColumns);
+        dataset.maxNumOFDiscreteValuesForInstancesObject = this.maxNumOFDiscreteValuesForInstancesObject;
+
+        return dataset;
+    }
+
     public Dataset generateRandomSubDataSet(int numOfInstancesPerFold, int randomSeed) throws Exception {
 
         List<Fold> newFoldsList = new ArrayList<>();

@@ -30,6 +30,10 @@ public class DiscreteColumn implements Column,Serializable {
         return this.numOfPossibleValues;
     }
 
+    public void setAllValues(Object v) {
+        values = (int[])v;
+    }
+
     public Object getValues() {return values;}
 
 }

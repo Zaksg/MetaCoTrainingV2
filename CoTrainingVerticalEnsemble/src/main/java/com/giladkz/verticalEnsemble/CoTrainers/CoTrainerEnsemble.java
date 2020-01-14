@@ -14,7 +14,8 @@ public class CoTrainerEnsemble extends CoTrainerAbstract {
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet
+            , int topBatchesToAdd) throws Exception {
 
         properties = new Properties();
         InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");

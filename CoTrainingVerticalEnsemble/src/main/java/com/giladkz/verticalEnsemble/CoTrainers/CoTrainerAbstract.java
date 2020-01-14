@@ -23,11 +23,14 @@ import static com.giladkz.verticalEnsemble.GeneralFunctions.EvaluationAnalysisFu
 import static com.giladkz.verticalEnsemble.GeneralFunctions.EvaluationAnalysisFunctions.calculateMultiplicationClassificationResults;
 
 public abstract class CoTrainerAbstract {
+    public Boolean stop_exp = false;
+    public int topBatchesToAdd;
 
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet
+            , int topBatchesToAdd) throws Exception {
         throw new NotImplementedException();
     }
 
@@ -221,15 +224,31 @@ public abstract class CoTrainerAbstract {
                 long requiredNumOfInstancesPerClass = Math.round(classRatios.get(classIndex)*requiredNumOfLabeledInstances);
 
                 int addedInstancesCounter = 0;
-                while (addedInstancesCounter < requiredNumOfInstancesPerClass) {
+                int numTries = 0;
+                while (addedInstancesCounter < requiredNumOfInstancesPerClass && numTries < 6) {
                     int instanceIndex = rnd.nextInt(trainingFold.getNumOfInstancesInFold());
 
                     if ((int)dataset.getTargetClassColumn().getColumn().getValue(instanceIndex) == classIndex) {
                         if (!labeledTrainingInstancesIndices.contains(trainingFold.getIndices().get(instanceIndex))) {
                             labeledTrainingInstancesIndices.add(trainingFold.getIndices().get(instanceIndex));
                             addedInstancesCounter++;
+                            numTries = 0;
                         }
                     }
+                    //stuck in a loop of getting labeled instances
+                    else {
+                        numTries++;
+                    }
+                }
+                if (numTries >= 6){
+                    while (addedInstancesCounter < requiredNumOfInstancesPerClass){
+                        int instanceIndex = rnd.nextInt(trainingFold.getNumOfInstancesPerClass(classIndex));
+                        if (!labeledTrainingInstancesIndices.contains(trainingFold.getIndicesPerClass(classIndex).get(instanceIndex))) {
+                            labeledTrainingInstancesIndices.add(trainingFold.getIndicesPerClass(classIndex).get(instanceIndex));
+                            addedInstancesCounter++;
+                        }
+                    }
+
                 }
             }
         }
@@ -473,7 +492,7 @@ public abstract class CoTrainerAbstract {
      * @param labeledTrainingSetIndices
      * @throws Exception
      */
-    public void RunExperimentsOnTestSet(int expID, int expIteration, int innerIteration, Dataset dataset, Fold testFold
+    public double RunExperimentsOnTestSet(int expID, int expIteration, int innerIteration, Dataset dataset, Fold testFold
             , Fold trainFold, HashMap<Integer,Dataset> datasetPartitions,List<Integer> labeledTrainingSetIndices
             , Properties properties) throws Exception {
 
@@ -535,7 +554,14 @@ public abstract class CoTrainerAbstract {
         System.out.println("Multiplication classifier AUC: " + multiplicationAUC);
         writeTestSetEvaluationResults(expID,expIteration,innerIteration,"multiplication","auc",-1,
                 valuesHashmapmultiplication,properties);
-
+        // ToDo: consider exit from experiment
+        double auc_cutoff = 0.91;
+        if (innerIteration==-1 && oneClassifierAuc > auc_cutoff){
+            System.out.println("This experiment has high baseline: " + expID);
+            return -1.0;
+        }else{
+            return oneClassifierAuc;
+        }
     }
 
     public ArrayList<EvaluationInfo> RunExperimentsOnTestSetGetData(int expID, int expIteration, int innerIteration
@@ -603,5 +629,17 @@ public abstract class CoTrainerAbstract {
         writeTestSetEvaluationResults(expID,expIteration,innerIteration,"multiplication","auc",-1,
                 valuesHashmapmultiplication,properties);
         return res;
+    }
+
+    public Boolean getStop_exp() {
+        return stop_exp;
+    }
+
+    public int getTopBatchesToAdd() {
+        return topBatchesToAdd;
+    }
+
+    public void setTopBatchesToAdd(int topBatchesToAdd) {
+        this.topBatchesToAdd = topBatchesToAdd;
     }
 }

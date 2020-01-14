@@ -9,6 +9,7 @@ import com.giladkz.verticalEnsemble.MetaLearning.InstanceAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.InstancesBatchAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributes;
 import com.giladkz.verticalEnsemble.MetaLearning.ScoreDistributionBasedAttributesTdBatch;
+import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import com.giladkz.verticalEnsemble.ValueFunctions.RandomValues;
 import com.giladkz.verticalEnsemble.ValueFunctions.ValueFunctionInterface;
 import weka.core.Instances;
@@ -23,6 +24,8 @@ import java.io.FileOutputStream;
 import java.util.stream.Collectors;
 
 import static com.giladkz.verticalEnsemble.App.InitializeFoldsInfo;
+import static com.giladkz.verticalEnsemble.GeneralFunctions.EvaluationAnalysisFunctions.calculateAverageClassificationResults;
+import static com.giladkz.verticalEnsemble.GeneralFunctions.EvaluationAnalysisFunctions.calculateMultiplicationClassificationResults;
 
 public class CoTrainOneStep extends CoTrainerAbstract {
     private Properties properties;
@@ -246,6 +249,11 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                 new ArrayList<>(this._unlabeledTrainingSetIndices), properties);
         this._unifiedDatasetEvaulationResults.addEvaluationInfo(unifiedSetEvaluationResults, iteration);
 
+        /*step 2.2: run classifiers on test set*/
+        RunMeasureTestSet(exp_id, iteration, this._dataset
+                , this._dataset.getTestFolds().get(0), this._dataset.getTrainingFolds().get(0)
+                , this._datasetPartitions, this._labeledTrainingSetIndices, filePrefix, properties);
+
         /*step 3: extract initial meta features for env - score distribution based */
         ScoreDistributionBasedAttributes scoreDistributionBasedAttributes = new ScoreDistributionBasedAttributes();
         HashMap<TreeMap<Integer,AttributeInfo>, int[]> writeInstanceMetaDataInGroup = new HashMap<>();
@@ -272,7 +280,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                 unlabeledToMetaFeatures,labeledToMetaFeatures,
                 iteration, evaluationResultsPerSetAndInterationTree, this._unifiedDatasetEvaulationResults,
                 targetClassIndex,"reg", properties);
-        //ToDo: add dataset meta features (python code)
+        //dataset meta features added in the python code
 
         /*step 4: generate action space == batches cadidates and their meta features (instance based and batch based) + reward (AUC diff) */
         InstanceAttributes instanceAttributes = new InstanceAttributes();
@@ -395,6 +403,83 @@ public class CoTrainOneStep extends CoTrainerAbstract {
 
     }
 
+    private void RunMeasureTestSet(int expID, int iteration, Dataset dataset, Fold testFold
+            , Fold trainFold, HashMap<Integer, Dataset> datasetPartitions
+            , List<Integer> labeledTrainingSetIndices, String filePrefix, Properties properties) throws Exception{
+
+        AUC auc = new AUC();
+        int[] testFoldLabels = dataset.getTargetClassLabelsByIndex(testFold.getIndices());
+        //Test the entire newly-labeled training set on the test set
+        EvaluationInfo evaluationResultsOneClassifier = runClassifier(properties.getProperty("classifier"),
+                dataset.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices),
+                dataset.generateSet(FoldsInfo.foldType.Test,testFold.getIndices())
+                    , new ArrayList<Integer>(testFold.getIndices()),properties);
+
+        double oneClassifierAuc = auc.measure(testFoldLabels, getSingleClassValueConfidenceScore(evaluationResultsOneClassifier.getScoreDistributions(),1));
+        //when calculating the AUC for set of only one label - it returns as NaN, so this will fix it to 0
+        if (Double.isNaN(oneClassifierAuc)){
+            oneClassifierAuc = 0.0;
+        }
+
+        //we train the models on the partitions and applying them to the test set
+        HashMap<Integer,EvaluationInfo> evaluationResultsPerPartition = new HashMap<>();
+        for (int partitionIndex : datasetPartitions.keySet()) {
+            EvaluationInfo evaluationResults = runClassifier(properties.getProperty("classifier"),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices),
+                    datasetPartitions.get(partitionIndex).generateSet(FoldsInfo.foldType.Test,testFold.getIndices()),
+                    new ArrayList<Integer>(testFold.getIndices()),properties);
+            evaluationResultsPerPartition.put(partitionIndex,evaluationResults);
+        }
+
+        //here we use averaging to combine the classification results of the partitions
+        TreeMap<Integer,double[]> averageClassificationResults = calculateAverageClassificationResults(evaluationResultsPerPartition, dataset.getNumOfClasses());
+        double averagingAUC = auc.measure(testFoldLabels,
+                getSingleClassValueConfidenceScore(averageClassificationResults,1));
+        //when calculating the AUC for set of only one label - it returns as NaN, so this will fix it to 0
+        if (Double.isNaN(averagingAUC)){
+            averagingAUC = 0.0;
+        }
+
+        //now we use multiplications (the same way the original co-training paper did)
+        TreeMap<Integer,double[]> multiplicationClassificationResutls = calculateMultiplicationClassificationResults(evaluationResultsPerPartition,
+                dataset.getNumOfClasses(), dataset.getClassRatios(false));
+        double multiplicationAUC = auc.measure(testFoldLabels,
+                getSingleClassValueConfidenceScore(multiplicationClassificationResutls,1));
+        //when calculating the AUC for set of only one label - it returns as NaN, so this will fix it to 0
+        if (Double.isNaN(multiplicationAUC)){
+            multiplicationAUC = 0.0;
+        }
+
+        System.out.println("One classifier AUC: " + oneClassifierAuc);
+        System.out.println("AVG classifier AUC: " + averagingAUC);
+        System.out.println("Multiplication classifier AUC: " + multiplicationAUC);
+
+        //write results to CSV
+        String folder = properties.getProperty("modelFiles") + filePrefix;
+        String filename = iteration + "_AUC_measures.csv";
+        FileWriter fileWriter = new FileWriter(folder+filename);
+        String fileHeader = "exp_id,iteration,one_classifier_auc,avg_auc,multiplication_auc\n";
+        fileWriter.append(fileHeader);
+        try {
+            //insert to table
+            fileWriter.append(String.valueOf(expID));
+            fileWriter.append(",");
+            fileWriter.append(String.valueOf(iteration));
+            fileWriter.append(",");
+            fileWriter.append(String.valueOf(oneClassifierAuc));
+            fileWriter.append(",");
+            fileWriter.append(String.valueOf(averagingAUC));
+            fileWriter.append(",");
+            fileWriter.append(String.valueOf(multiplicationAUC));
+            fileWriter.append("\n");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
     private void writeCoTrainEnv(
             String filePrefix, HashMap<Integer, HashMap<Integer, Integer>> batchInstancePosClass
             , HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeInstanceMetaDataInGroup
@@ -404,11 +489,11 @@ public class CoTrainOneStep extends CoTrainerAbstract {
 
         //csv files
         String file_instanceMetaFeatures = insertInstanceMetaFeaturesToMetaLearnDB(writeInstanceMetaDataInGroup
-                , filePrefix, properties, this._dataset, exp_id, iteration, iteration, "");
+                , filePrefix, properties, this._dataset, exp_id, iteration, "");
         String file_batchMetaFeatures = insertBatchMetaFeaturesToMetaLearnDB(writeBatchMetaDataInGroup
-                , filePrefix, properties, this._dataset, exp_id, iteration, iteration, "");
+                , filePrefix, properties, this._dataset, exp_id, iteration, "");
         String file_scoreDistFeatures = insertScoreDistributionToMetaLearnDB(scoreDistributionCurrentIteration
-                , filePrefix, iteration, exp_id, iteration, properties, this._dataset, "");
+                , filePrefix, properties, this._dataset, exp_id, iteration, "");
         //object file
         String file_batchCandidates = insertBatchCandidatesDB(batchInstancePosClass
                 , filePrefix, iteration, exp_id, properties, this._dataset);
@@ -501,6 +586,22 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         TreeMap<Integer,AttributeInfo> scores = new TreeMap<>();
         ScoreDistributionBasedAttributesTdBatch scoreDist = new ScoreDistributionBasedAttributesTdBatch();
 
+        //auc before add
+        Dataset clonedDataset = dataset.replicateDataset();
+        List<Integer> clonedlabeLedTrainingSetIndices = new ArrayList<>(labeledTrainingSetIndices);
+        AUC aucBeforeAddBatch = new AUC();
+        int[] testFoldLabelsBeforeAdding = clonedDataset.getTargetClassLabelsByIndex(testFold.getIndices());
+        EvaluationInfo evaluationResultsBeforeAdding = runClassifier(properties.getProperty("classifier"),
+                clonedDataset.generateSet(FoldsInfo.foldType.Train,clonedlabeLedTrainingSetIndices),
+                clonedDataset.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()),
+                new ArrayList<>(testFold.getIndices()), properties);
+        double measureAucBeforeAddBatch = aucBeforeAddBatch.measure
+                (testFoldLabelsBeforeAdding
+                        , getSingleClassValueConfidenceScore(evaluationResultsBeforeAdding.getScoreDistributions()
+                        ,1));
+        AttributeInfo measureAucBeforeAddBatch_att = new AttributeInfo
+                ("beforeBatchAuc", Column.columnType.Numeric, measureAucBeforeAddBatch, -1);
+
         //add batch to the dataset
         Dataset datasetAddedBatch = generateDatasetCopyWithBatchAdded(dataset, assignedLabelsOriginalIndex
                 , labeledTrainingSetIndices,  properties);
@@ -555,6 +656,32 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                 , labeledToMetaFeatures_td, unlabeledToMetaFeatures_td
                 , i, targetClassIndex, properties);
 
+        //aud after add
+        for (Map.Entry<Integer,Integer> entry : assignedLabelsOriginalIndex.entrySet()){
+            int instancePos = entry.getKey();
+            clonedlabeLedTrainingSetIndices.add(instancePos);
+        }
+        int[] testFoldLabelsAfterAdding = datasetAddedBatch.getTargetClassLabelsByIndex(testFold.getIndices());
+        //Test the entire newly-labeled training set on the test set
+        EvaluationInfo evaluationResultsAfterAdding = runClassifier(properties.getProperty("classifier"),
+                datasetAddedBatch.generateSet(FoldsInfo.foldType.Train,clonedlabeLedTrainingSetIndices),
+                datasetAddedBatch.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()), new ArrayList<>(testFold.getIndices()), properties);
+        //AUC after change dataset
+        AUC aucAfterAddBatch = new AUC();
+        double measureAucAfterAddBatch = aucAfterAddBatch.measure
+                (testFoldLabelsAfterAdding,
+                        getSingleClassValueConfidenceScore(evaluationResultsAfterAdding.getScoreDistributions()
+                                ,1));
+        AttributeInfo measureAucAfterAddBatch_att = new AttributeInfo
+                ("afterBatchAuc", Column.columnType.Numeric, measureAucAfterAddBatch, -1);
+        double aucDifference = measureAucAfterAddBatch - measureAucBeforeAddBatch;
+        AttributeInfo aucDifference_att = new AttributeInfo
+                ("BatchAucDifference", Column.columnType.Numeric, aucDifference, -1);
+
+        //add auc before and after to the results
+        //scores.put(scores.size(), measureAucBeforeAddBatch_att);
+        //scores.put(scores.size(), measureAucAfterAddBatch_att);
+        scores.put(scores.size(), aucDifference_att);
         return scores;
     }
 
@@ -675,7 +802,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
     private String insertInstanceMetaFeaturesToMetaLearnDB(
             HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeInstanceMetaDataInGroup
             , String filePrefix, Properties properties, Dataset dataset
-            , int expID, int innerIteration, int expIteration, String writeType) throws Exception{
+            , int expID, int iteration, String writeType) throws Exception{
         //sql
         if (writeType=="sql") {
             return "";
@@ -685,7 +812,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
             String folder = properties.getProperty("modelFiles") + filePrefix;
 
             //String filename = "tbl_meta_learn_Instances_Meta_Data_exp_"+expID+"_iteration_"+expIteration+innerIteration+".csv";
-            String filename = "Instances_Meta_Data.csv";
+            String filename = iteration + "_Instances_Meta_Data.csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,instance_pos,batch_id,meta_feature_name,meta_feature_value\n";
             fileWriter.append(fileHeader);
@@ -735,7 +862,8 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         }
     }
 
-    private String insertBatchMetaFeaturesToMetaLearnDB(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeBatchMetaDataInGroup, String filePrefix, Properties properties, Dataset dataset, int expID, int innerIteration, int expIteration, String writeType) throws Exception{
+    private String insertBatchMetaFeaturesToMetaLearnDB(HashMap<TreeMap<Integer, AttributeInfo>, int[]> writeBatchMetaDataInGroup
+            , String filePrefix, Properties properties, Dataset dataset, int expID, int iteration, String writeType) throws Exception{
         //sql
         if (writeType=="sql") {
             return "";
@@ -744,7 +872,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         else{
             String folder = properties.getProperty("modelFiles") + filePrefix;
             //String filename = "tbl_meta_learn_Batches_Meta_Data_exp_"+expID+"_iteration_"+expIteration+innerIteration+".csv";
-            String filename = "Batches_Meta_Data.csv";
+            String filename = iteration + "_Batches_Meta_Data.csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,batch_id,meta_feature_name,meta_feature_value\n";
             fileWriter.append(fileHeader);
@@ -781,8 +909,8 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         }
     }
 
-    private String insertScoreDistributionToMetaLearnDB(TreeMap<Integer, AttributeInfo> scroeDistData, String filePrefix, int expID, int expIteration,
-                                                        int innerIteration, Properties properties, Dataset dataset, String writeType) throws Exception{
+    private String insertScoreDistributionToMetaLearnDB(TreeMap<Integer, AttributeInfo> scroeDistData, String filePrefix
+            , Properties properties, Dataset dataset, int expID, int expIteration, String writeType) throws Exception{
         //sql
         if (writeType=="sql") {
             return "";
@@ -791,7 +919,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         else{
             String folder = properties.getProperty("modelFiles") + filePrefix;
             //String filename = "tbl_meta_learn_Score_Distribution_Meta_Data_exp_"+expIteration+"_iteration_"+innerIteration+expID+".csv";
-            String filename = "Score_Distribution_Meta_Data.csv";
+            String filename = expIteration + "_Score_Distribution_Meta_Data.csv";
             FileWriter fileWriter = new FileWriter(folder+filename);
             String fileHeader = "att_id,exp_id,exp_iteration,inner_iteration_id,meta_feature_name,meta_feature_value\n";
             fileWriter.append(fileHeader);
@@ -816,7 +944,7 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                 fileWriter.append(",");
                 fileWriter.append(String.valueOf(expIteration));
                 fileWriter.append(",");
-                fileWriter.append(String.valueOf(innerIteration));
+                fileWriter.append(String.valueOf(expIteration));
                 fileWriter.append(",");
                 fileWriter.append(metaFeatureName);
                 fileWriter.append(",");

@@ -15,11 +15,13 @@ import weka.core.converters.ArffSaver;
 public class CoTrainerOriginal extends CoTrainerAbstract {
     private Properties properties;
 
+
     @Override
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning
+            , int random_seed, List<Integer> labeledTrainingSet, int topBatchesToAdd) throws Exception {
 
         properties = new Properties();
         InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");
@@ -63,11 +65,14 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
 
         //before we begin the co-training process, we test the performance on the original dataset
         System.out.println("Pre-run Original model results for dataset: "+original_arff_file+ " : ");
-        RunExperimentsOnTestSet(exp_id, iteration, -1, dataset, dataset.getTestFolds().get(0), dataset.getTrainingFolds().get(0), datasetPartitions, labeledTrainingSetIndices, properties);
+        double first_auc =  RunExperimentsOnTestSet(exp_id, iteration, -1, dataset, dataset.getTestFolds().get(0), dataset.getTrainingFolds().get(0), datasetPartitions, labeledTrainingSetIndices, properties);
+        if (first_auc < 0){
+            this.stop_exp=true;
+        }
 
         //And now we can begin the iterative process
         HashMap<Integer, EvaluationPerIteraion> evaluationResultsPerSetAndInteration = new HashMap<>();
-        for (int i=0; i<num_of_iterations; i++) {
+        for (int i=0; i<num_of_iterations && first_auc >= 0; i++) {
             /*for each set of features, train a classifier on the labeled training set and: a) apply it on the
             unlabeled set to select the samples that will be added; b) apply the new model on the test set, so that
             we can know during the analysis how we would have done on the test set had we stopped in this particular iteration*/
@@ -75,6 +80,8 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
 
             //step 1 - train the classifiers on the labeled training set and run on the unlabeled training set
             System.out.println("labaled: " + labeledTrainingSetIndices.size() + ";  unlabeled: " + unlabeledTrainingSetIndices.size() );
+            //write arff file for outer tests
+            //writeArffFilesLabalAndUnlabeled(dataset, unlabeledTrainingSetIndices, labeledTrainingSetIndices, i, exp_id, properties);
 
             Date expDate = new Date();
             Loader loader = new Loader();
@@ -147,8 +154,32 @@ public class CoTrainerOriginal extends CoTrainerAbstract {
         return null;
     }
 
+    private void writeArffFilesLabalAndUnlabeled(Dataset dataset, List<Integer> unlabeledTrainingSetIndices, List<Integer> labeledTrainingSetIndices, int i, int exp, Properties properties) throws Exception{
+
+        String direct = properties.getProperty("tempDirectory")+dataset.getName()+"_exp_" + exp;
+        // unlabeled file
+        ArffSaver s_unlabeled= new ArffSaver();
+        String tempFilePath_unlabeled = direct+"_unlabeled_iteration_"+i+".arff";
+        Files.deleteIfExists(Paths.get(tempFilePath_unlabeled));
+        s_unlabeled.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices));
+        s_unlabeled.setFile(new File(tempFilePath_unlabeled));
+        s_unlabeled.writeBatch();
+        // labeled file
+        ArffSaver s_labeled= new ArffSaver();
+        String tempFilePath_labeled = direct+"_labeled_iteration_"+i+".arff";
+        Files.deleteIfExists(Paths.get(tempFilePath_labeled));
+        s_labeled.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices));
+        s_labeled.setFile(new File(tempFilePath_labeled));
+        s_labeled.writeBatch();
+    }
+
     @Override
     public String toString() {
         return "CoTrainerOriginal";
+    }
+
+    @Override
+    public Boolean getStop_exp() {
+        return stop_exp;
     }
 }

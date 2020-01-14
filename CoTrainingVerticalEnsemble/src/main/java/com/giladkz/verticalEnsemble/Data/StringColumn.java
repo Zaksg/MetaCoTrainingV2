@@ -31,4 +31,8 @@ public class StringColumn implements Column,Serializable {
 
     public Object getValues() {return values;}
 
+    public void setAllValues(Object v) {
+        values = (String[])v;
+    }
+
 }

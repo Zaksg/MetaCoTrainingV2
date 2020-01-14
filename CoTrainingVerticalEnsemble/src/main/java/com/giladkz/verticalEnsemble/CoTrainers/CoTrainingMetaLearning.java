@@ -26,7 +26,8 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
     public Dataset Train_Classifiers(HashMap<Integer, List<Integer>> feature_sets, Dataset dataset, int initial_number_of_labled_samples,
                                      int num_of_iterations, HashMap<Integer, Integer> instances_per_class_per_iteration, String original_arff_file,
                                      int initial_unlabeled_set_size, double weight, DiscretizerAbstract discretizer, int exp_id, String arff,
-                                     int iteration, double weight_for_log, boolean use_active_learning, int random_seed, List<Integer> labeledTrainingSet) throws Exception {
+                                     int iteration, double weight_for_log, boolean use_active_learning
+            , int random_seed, List<Integer> labeledTrainingSet, int topBatchesToAdd) throws Exception {
 
         /*This set is meta features analyzes the scores assigned to the unlabeled training set at each iteration.
         * Its possible uses include:
@@ -220,9 +221,6 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                                 long instances_finish = System.currentTimeMillis();
                                 //System.out.println("instances meta features: " + batchIndex+" in " + (instances_finish - instances_start) + " ms");
                                 //batch meta features
-                                //ToDo: check if these 2 rows needed
-                                //batchesInstancesList.add(generatedBatch.get(0));
-                                //batchInstancePosClass.put(batchIndex, new HashMap<>(assignedLabelsOriginalIndex));
                                 long batch_start = System.currentTimeMillis();
                                 TreeMap<Integer,AttributeInfo> batchAttributeCurrentIterationList = instancesBatchAttributes.getInstancesBatchAssignmentMetaFeatures(
                                         unlabeledToMetaFeatures,labeledToMetaFeatures,
@@ -272,6 +270,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
                             topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                         }
                         //scrumbel candidates
+                        System.out.println("scrumble batches");
                         topSelectedInstancesCandidatesArr = getTopCandidates(evaluationResultsPerSetAndInteration, unlabeledTrainingSetIndices);
                     }
                 }
@@ -1563,7 +1562,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
         ArrayList<Integer> assignedLabelsOriginalIndex_1 = new ArrayList<>();
         assignedLabelsOriginalIndex_1.add(partition_0_class_1_ins_1.get(1));
-        assignedLabelsOriginalIndex_1.add(partition_0_class_1_ins_1.get(1));
+        assignedLabelsOriginalIndex_1.add(partition_0_class_1_ins_2.get(1));
         assignedLabelsOriginalIndex_1.add(partition_1_class_1_ins_1.get(1));
         assignedLabelsOriginalIndex_1.add(partition_1_class_1_ins_2.get(1));
 
@@ -1575,7 +1574,7 @@ public class CoTrainingMetaLearning extends CoTrainerAbstract {
 
         ArrayList<Integer> assignedLabelsSelectedIndex_1 = new ArrayList<>();
         assignedLabelsSelectedIndex_1.add(partition_0_class_1_ins_1.get(0));
-        assignedLabelsSelectedIndex_1.add(partition_0_class_1_ins_1.get(0));
+        assignedLabelsSelectedIndex_1.add(partition_0_class_1_ins_2.get(0));
         assignedLabelsSelectedIndex_1.add(partition_1_class_1_ins_1.get(0));
         assignedLabelsSelectedIndex_1.add(partition_1_class_1_ins_2.get(0));
 

@@ -30,5 +30,9 @@ public class NumericColumn implements Column,Serializable {
         values[i] = v;
     }
 
+    public void setAllValues(Object v) {
+        values = (double[])v;
+    }
+
     public Object getValues() {return values;}
 }

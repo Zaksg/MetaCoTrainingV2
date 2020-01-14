@@ -191,7 +191,8 @@ public class InstancesBatchAttributes {
 
         //distance statistics
         //random sampling - 1000 instances
-        Random rnd = new Random(Integer.parseInt(properties.getProperty("randomSeed")));
+//        Random rnd = new Random(Integer.parseInt(properties.getProperty("randomSeed")));
+        Random rnd = new Random(42);
         HashMap<Integer, HashMap<Integer, double[]>> randomSampleScores = new HashMap<>(); //instancePos -> partition -> both class
         HashMap<Integer, DescriptiveStatistics[]> axisStatsPerPartitionMap = new HashMap<>(); //partition -> stats per class
         HashMap<Integer, DescriptiveStatistics> distancePerPartitionMap = new HashMap<>(); //partition -> euclidean distance
