@@ -61,7 +61,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
         String writeFile = "";
 
         //added batch type: single batch or multi batch
-        // String addedBatchType = "single";
+        //String addedBatchType = "single";
         String addedBatchType = "multi";
 
         /* We start by partitioning the dataset based on the sets of features this function receives as a parameter */
@@ -144,7 +144,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                 }
                 evaluationResultsPerSetAndInteration.get(partitionIndex).addEvaluationInfo(evaluationResults, i);
                 //write unlabeled set
-                /*for(int type=0; type < 2; type++){
+                for(int type=0; type < 2; type++){
                     if (type==0){
                         String tempFilePath = properties.getProperty("tempDirectory")+dataset.getName()+"_partition_"+partitionIndex+"_iteration_"+i+"_unlabeled_meta_co_train.arff";
                         Files.deleteIfExists(Paths.get(tempFilePath));
@@ -161,7 +161,7 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
                         s.setFile(new File(tempFilePath));
                         s.writeBatch();
                     }
-                }*/
+                }
             }
 
             //now we run the classifier trained on the unified set
@@ -472,12 +472,14 @@ public class CoTrainMetaModelLoded extends CoTrainerAbstract{
 
                         String cmd = "python /data/home/zaksg/co-train/cotrain-v2/meta_model_for_java_csv_v2_multi.py ";
                         //String cmd = "python /Users/guyz/Documents/CoTrainingVerticalEnsemble/meta_model/venv/meta_model_for_java_csv_v2_multi_local.py ";
-                        int numBatch = 0;
+                        int numBatch = 1;
+                        //best option
+                        /*int numBatch = 0;
                         if(i==0){
                             numBatch = 1;
                         }else if (i <= 3){
                             numBatch = 5;
-                        }
+                        }*/
                         Process pythonRun = Runtime.getRuntime().exec(
                                 cmd
                                         + original_arff_file + " "

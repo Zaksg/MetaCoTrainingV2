@@ -555,7 +555,7 @@ public abstract class CoTrainerAbstract {
         writeTestSetEvaluationResults(expID,expIteration,innerIteration,"multiplication","auc",-1,
                 valuesHashmapmultiplication,properties);
         // ToDo: consider exit from experiment
-        double auc_cutoff = 0.91;
+        double auc_cutoff = 0.999;
         if (innerIteration==-1 && oneClassifierAuc > auc_cutoff){
             System.out.println("This experiment has high baseline: " + expID);
             return -1.0;

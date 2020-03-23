@@ -51,8 +51,9 @@ public class App
         if (args.length > 0 && Objects.equals(args[0], "init")){
             String datasetFile = args[1];
             String filePrefix = args[2];
+            Integer expId = Integer.parseInt(args[3]);
             CoTrainOneStep coTrainer_oneStep_init = new CoTrainOneStep();
-            coTrainer_oneStep_init.getDatasetObjFromFile(datasetFile, filePrefix, properties);
+            coTrainer_oneStep_init.getDatasetObjFromFile(datasetFile, filePrefix, expId, properties);
         }
         //RL iteration - for the python code - second and loop step of the RL framework
         /*run instruction for python: python <>.py iteration prefix
@@ -97,10 +98,10 @@ public class App
             List<File> listFilesBeforeShuffle = Arrays.asList(listOfFilesTMP);
             Collections.shuffle(listFilesBeforeShuffle);
             listOfFiles = (File[]) listFilesBeforeShuffle.toArray();
-            List<String> labeledTrainingSet = Arrays.asList("100", "108", "116", "130", "140", "160", "180", "200", "250");
-//            List<String> labeledTrainingSet = Arrays.asList("100");
-            List<String> addedBatches = Arrays.asList("1", "3", "5", "10");
-//            List<String> addedBatches = Arrays.asList("0");
+//            List<String> labeledTrainingSet = Arrays.asList("100", "108", "116", "130", "140", "160", "180", "200", "250");
+            List<String> labeledTrainingSet = Arrays.asList("100");
+//            List<String> addedBatches = Arrays.asList("1", "3", "5", "10");
+            List<String> addedBatches = Arrays.asList("1");
 
 
             String[] toDoDatasets = {"german_credit.arff"};
@@ -150,10 +151,13 @@ public class App
             for (File file : listOfFiles) {
                 if (file.isFile() && file.getName().endsWith(".arff") /*&& !Arrays.asList(doneDatasets).contains(file.getName())*/
                         && Arrays.asList(toDoDatasets).contains(file.getName())) {
-
+                    Dataset temp_ds_calc = loader.readArff(
+                            new BufferedReader(new FileReader(file.getAbsolutePath())), 0,
+                            null, -1, 0.7, foldsInfo);
+                    int numOfLabeledInstances = (int)(temp_ds_calc.getIndicesOfTrainingInstances().size()*0.8);
                     for (String labelSetSize: labeledTrainingSet/*int numOfLabeledInstances : sizeOfLabeledTrainingSet*/) {
                         for (String topBatches : addedBatches){
-                            int numOfLabeledInstances = Integer.parseInt(labelSetSize);
+                            // int numOfLabeledInstances = Integer.parseInt(labelSetSize);
                             int topBatchesSelection = Integer.parseInt(topBatches);
                             //properties.setProperty("initialLabeledGroup", labelSetSize);
                             //properties.setProperty("topBatchSelection", topBatches);
