@@ -13,9 +13,12 @@ import com.giladkz.verticalEnsemble.StatisticsCalculations.AUC;
 import com.giladkz.verticalEnsemble.ValueFunctions.RandomValues;
 import com.giladkz.verticalEnsemble.ValueFunctions.ValueFunctionInterface;
 import weka.core.Instances;
+import weka.core.converters.ArffSaver;
 
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -38,12 +41,15 @@ public class CoTrainOneStep extends CoTrainerAbstract {
     //ToDo: add object for score distribution on iterations back
     private HashMap<Integer, EvaluationPerIteraion> _evaluationResultsPerSetAndInteration;
     private EvaluationPerIteraion _unifiedDatasetEvaulationResults;
+    private int _initial_labeled_set_size;
 
 
     public void getDatasetObjFromFile(String arffName, String filePrefix, Integer expId, Properties properties) throws Exception {
         //region Initialization
         //Properties properties = new Properties();
         //InputStream input = App.class.getClassLoader().getResourceAsStream("config.properties");
+        int labeled_set_option = 1; //1=20%, 0=fixed 100
+//        int labeled_set_option = 0; //1=20%, 0=fixed 100
         this.properties = properties;
         DiscretizerAbstract discretizer = new EqualRangeBinsDiscretizer(Integer.parseInt(this.properties.getProperty("numOfDiscretizationBins")));
         FeatureSelectorInterface featuresSelector = new RandomParitionFeatureSelector();
@@ -72,6 +78,15 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                     Dataset dataset = loader.readArff
                             (reader, i, null
                                     , -1, 0.7, foldsInfo);
+                    //labeled set size - 20%
+                    int numOfLabeledInstances;
+                    if(labeled_set_option > 0){
+                        numOfLabeledInstances = (int)(dataset.getIndicesOfTrainingInstances().size()*0.2);
+                    }else{
+                        numOfLabeledInstances = sizeOfLabeledTrainingSet.get(0);
+                    }
+                    this._initial_labeled_set_size = numOfLabeledInstances;
+                    System.out.println("Labeled Set Size: " + numOfLabeledInstances);
                     //create the feature selection
                     HashMap<Integer, List<Integer>> featureSets = featuresSelector.Get_Feature_Sets
                             (dataset,discretizer,valueFunction,1
@@ -80,10 +95,10 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                                     ,false, i);
                     //create the initial labeling set
                     List<Integer> labeledTrainingSet = this.getLabeledTrainingInstancesIndices
-                            (dataset,sizeOfLabeledTrainingSet.get(0),true,i);
+                            (dataset,numOfLabeledInstances,true,i);
                     /*step 2: data partition + run classifiers. saving objects*/
                     datasetPartitionEval(featureSets, dataset, labeledTrainingSet, arffName, i
-                            , sizeOfLabeledTrainingSet.get(0), 30000, filePrefix, this.properties);
+                            , numOfLabeledInstances, 30000, filePrefix, this.properties);
 
                 }catch (Exception e){
                     e.printStackTrace();
@@ -226,6 +241,12 @@ public class CoTrainOneStep extends CoTrainerAbstract {
             ObjectInputStream oi_batchIds = new ObjectInputStream(fi_batchIds);
             set_batchIdToInstancesMap((HashMap<Integer, HashMap<Integer, Integer>>)oi_batchIds.readObject());
             instancesToAdd = new ArrayList<>(this._batchIdToInstancesMap.get(batchIdToAdd).keySet());
+            HashMap<Integer,HashMap<Integer,Double>> instancesToAddPerClass = getSelectedBatchToAdd(batchIdToAdd, this._batchIdToInstancesMap);
+            for (int classIndex : instancesToAddPerClass.keySet()) {
+                this._dataset.updateInstanceTargetClassValue(new ArrayList<>(instancesToAddPerClass.get(classIndex).keySet()), classIndex);
+            }
+            writeAccuracySelectedBatch(instancesToAddPerClass, this._dataset, properties, filePrefix, exp_id, iteration, batchIdToAdd);
+
         }
         List<Integer> newLabeledSet = get_labeledTrainingSetIndices();
         newLabeledSet.addAll(instancesToAdd);
@@ -305,10 +326,11 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         pairsDict.put('d',new int[]{1,2});
         pairsDict.put('e',new int[]{1,3});
         pairsDict.put('f',new int[]{2,3});
-        for(char pair_0_0 : "abcdef".toCharArray()) {
-            for(char pair_0_1 : "abcdef".toCharArray()) {
-                for(char pair_1_0 : "abcdef".toCharArray()) {
-                    for(char pair_1_1 : "abcdef".toCharArray()) {
+        // To reduce number of batches, we use "abcde" instead of "abcdef", to get 5^4=625 batches
+        for(char pair_0_0 : "abcde".toCharArray()) {
+            for(char pair_0_1 : "abcde".toCharArray()) {
+                for(char pair_1_0 : "abcde".toCharArray()) {
+                    for(char pair_1_1 : "abcde".toCharArray()) {
                         //structure:
                         // [0]instancesBatchOrginalPos, [1]instancesBatchSelectedPos
                         // [2]assignedLabelsOriginalIndex_0, [3]assignedLabelsOriginalIndex_1
@@ -379,11 +401,13 @@ public class CoTrainOneStep extends CoTrainerAbstract {
                 , scoreDistributionCurrentIteration, properties, this._dataset, exp_id, iteration);
 
 
-
         /*step 5: write objects again*/
         writeCoTrainObjects(get_unlabeledTrainingSetIndices(), get_labeledTrainingSetIndices()
                 , get_datasetPartitions(), get_dataset(), this._evaluationResultsPerSetAndInteration
                 , this._unifiedDatasetEvaulationResults, this._featureSets, filePrefix, properties);
+
+        writeArffFilesLabalAndUnlabeled(this._dataset, this._unlabeledTrainingSetIndices, this._labeledTrainingSetIndices, iteration, exp_id
+                , this._initial_labeled_set_size, topBatchesToAdd, properties);
 
         //close connections
         fi_dataset.close();
@@ -701,7 +725,8 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         labeledTrainingSetIndices_cloned.addAll(assignedLabelsOriginalIndex.keySet());
 
         //unlabeled instances in the new dataset
-        List<Integer> unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices;
+        //List<Integer> unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices;
+        List<Integer> unlabeledTrainingSetIndices_cloned = new ArrayList<>(unlabeledTrainingSetIndices);
         unlabeledTrainingSetIndices_cloned = unlabeledTrainingSetIndices_cloned.stream().filter(line -> !labeledTrainingSetIndices_cloned.contains(line)).collect(Collectors.toList());
 
         //change to the labeled and unlabeled format
@@ -748,11 +773,11 @@ public class CoTrainOneStep extends CoTrainerAbstract {
 
         //AUC after change dataset
         AUC aucAfterAddBatch = new AUC();
-        int[] testFoldLabelsAfterAdding = datasetAddedBatch.getTargetClassLabelsByIndex(testFold.getIndices());
+        int[] testFoldLabelsAfterAdding = dataset.getTargetClassLabelsByIndex(testFold.getIndices());
         //Test the entire newly-labeled training set on the test set
         EvaluationInfo evaluationResultsAfterAdding = runClassifier(properties.getProperty("classifier"),
                 datasetAddedBatch.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices_cloned),
-                datasetAddedBatch.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()), new ArrayList<>(testFold.getIndices()), properties);
+                dataset.generateSet(FoldsInfo.foldType.Test,testFold.getIndices()), new ArrayList<>(testFold.getIndices()), properties);
         double measureAucAfterAddBatch = aucAfterAddBatch.measure(testFoldLabelsAfterAdding,
                         getSingleClassValueConfidenceScore(evaluationResultsAfterAdding.getScoreDistributions(),1));
         AttributeInfo measureAucAfterAddBatch_att = new AttributeInfo
@@ -860,6 +885,102 @@ public class CoTrainOneStep extends CoTrainerAbstract {
         res.add(assignedLabelsSelectedIndex_0);
         res.add(assignedLabelsSelectedIndex_1);
         return res;
+    }
+
+    private void writeAccuracySelectedBatch(HashMap<Integer, HashMap<Integer, Double>> instancesToAddPerClass
+            , Dataset dataset, Properties properties, String filePrefix
+            , int exp_id, int iteration, int selectedBatchId) throws Exception {
+        String folder = properties.getProperty("modelFiles") + filePrefix;
+        String filename = "tbl_Selected_Batch_Analysis_exp_"+exp_id+"_iteration_"+iteration+".csv";
+        FileWriter fileWriter = new FileWriter(folder+filename);
+        String fileHeader = "exp_id,exp_iteration,batch_id,instance_pos,true_label,predicted_label,is_correct,confidence\n";
+        fileWriter.append(fileHeader);
+        int countAdded = 0;
+        int countCorrect = 0;
+
+        for (Integer label: instancesToAddPerClass.keySet()) {
+            for (Map.Entry<Integer, Double> instanceScore : instancesToAddPerClass.get(label).entrySet()){
+                int instancePos = instanceScore.getKey();
+                double conf = instanceScore.getValue();
+                int trueLabel = dataset.getInstancesClassByIndex(Arrays.asList(instancePos)).get(instancePos);
+                countCorrect+=(trueLabel == label ? 1 : 0);
+
+                fileWriter.append(String.valueOf(exp_id));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(iteration));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(selectedBatchId));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(instancePos));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(trueLabel));
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(label));
+                fileWriter.append(",");
+                fileWriter.append(trueLabel == label ? "1" : "0");
+                fileWriter.append(",");
+                fileWriter.append(String.valueOf(conf));
+                fileWriter.append("\n");
+                countAdded++;
+            }
+        }
+        System.out.println("Total instances added: " + countAdded + " correct: " + countCorrect + " " + (double)(countCorrect)/countAdded);
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
+    private HashMap<Integer,HashMap<Integer,Double>> getSelectedBatchToAdd(int selectedBatchId
+            , HashMap<Integer, HashMap<Integer, Integer>> batchInstancePosClass) {
+        HashMap<Integer,HashMap<Integer,Double>> selectedBatchInstanceByClass = new HashMap<>();
+        selectedBatchInstanceByClass.put(0, new HashMap<>());
+        selectedBatchInstanceByClass.put(1, new HashMap<>());
+        HashMap<Integer, Integer> selectedBatchInstanceClass = batchInstancePosClass.get(selectedBatchId);
+        for (Map.Entry<Integer, Integer> instance : selectedBatchInstanceClass.entrySet()){
+
+            int assignedClass = instance.getValue();
+            int instancePos = instance.getKey();
+            if (assignedClass == 0){
+                selectedBatchInstanceByClass.get(0).put(instancePos, 1.0);
+            }
+            else{
+                selectedBatchInstanceByClass.get(1).put(instancePos, 1.0);
+            }
+        }
+        return selectedBatchInstanceByClass;
+    }
+
+    private void writeArffFilesLabalAndUnlabeled(Dataset dataset, List<Integer> unlabeledTrainingSetIndices, List<Integer> labeledTrainingSetIndices
+            , int i, int exp, int initial_number_of_labled_samples, int topBatchesToAdd, Properties properties) throws Exception{
+
+        if(i < 10){
+            String direct = properties.getProperty("modelFiles")+dataset.getName()+"_exp_" + exp
+                    + "_initial_labels_" + initial_number_of_labled_samples + "_added_batch_" + topBatchesToAdd;
+            // unlabeled file
+            ArffSaver s_unlabeled= new ArffSaver();
+            String tempFilePath_unlabeled = direct+"_unlabeled_iteration_"+i+".arff";
+            Files.deleteIfExists(Paths.get(tempFilePath_unlabeled));
+            s_unlabeled.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,unlabeledTrainingSetIndices));
+            s_unlabeled.setFile(new File(tempFilePath_unlabeled));
+            s_unlabeled.writeBatch();
+            // labeled file
+            ArffSaver s_labeled= new ArffSaver();
+            String tempFilePath_labeled = direct+"_labeled_iteration_"+i+".arff";
+            Files.deleteIfExists(Paths.get(tempFilePath_labeled));
+            s_labeled.setInstances(dataset.generateSet(FoldsInfo.foldType.Train,labeledTrainingSetIndices));
+            s_labeled.setFile(new File(tempFilePath_labeled));
+            s_labeled.writeBatch();
+            //test set - needed only once
+
+            if(i == 0){
+                ArffSaver s_testset= new ArffSaver();
+                String tempFilePath_testset = direct+"_testset.arff";
+                Files.deleteIfExists(Paths.get(tempFilePath_testset));
+                s_testset.setInstances(dataset.generateSet(FoldsInfo.foldType.Test,dataset.getIndicesOfTestInstances()));
+                s_testset.setFile(new File(tempFilePath_testset));
+                s_testset.writeBatch();
+            }
+        }
+
     }
 
 
