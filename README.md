@@ -9,3 +9,6 @@ CoMet utilizes meta-models trainedon previously-analyzed datasets to select the 
 
 ![Meta-features extraction](https://github.com/Zaksg/MetaCoTrainingV2/blob/master/comet_framework.png)
 
+CoMet was firstly presented on AAMAS 2020 (International Conference On Autonomous Agents and Multi-Agent Systems).
+
+More details about the method and performance are available [here](http://ifaamas.org/Proceedings/aamas2020/pdfs/p2068.pdf)
